@@ -91,7 +91,7 @@ function withFinder(
 ): Promise<JsonValue> {
   const cwd = execCwd(exec)
   if (cwd === undefined) {
-    return Promise.resolve(fmtError('没有可搜索的工作区，请先在工作区中打开会话'))
+    return Promise.resolve(fmtError('Não há workspace pesquisável; abra uma sessão no workspace primeiro'))
   }
   return picker.acquire(cwd, scanWaitMs).then((res) => {
     if (!res.ok) return fmtError(res.error)
@@ -114,8 +114,8 @@ function errDetail(fallback: string, error: string | undefined): JsonValue {
 function renderFind(value: JsonValue): string {
   const v = value as unknown as FindResult
   const lines = v.items.map((it) => `[${it.isDir ? 'd' : 'f'}] ${it.relativePath}`)
-  if (v.truncated && lines.length > 0) lines.push(`… 还有更多匹配（total ${String(v.total)}），可缩小查询或加前缀过滤`)
-  return lines.length > 0 ? lines.join('\n') : '无匹配'
+  if (v.truncated && lines.length > 0) lines.push(`… há mais correspondências (total ${String(v.total)}); reduza a consulta ou adicione um prefixo de filtro`)
+  return lines.length > 0 ? lines.join('\n') : 'Sem correspondências'
 }
 
 function renderGrep(value: JsonValue): string {
@@ -126,15 +126,15 @@ function renderGrep(value: JsonValue): string {
     const after = (it.contextAfter ?? []).map((l) => `      ${l}`)
     return [head, ...before, ...after].join('\n')
   })
-  if (v.more && blocks.length > 0) blocks.push(`… 还有更多匹配（total ${String(v.total)}），可缩小查询或加前缀过滤`)
-  return blocks.length > 0 ? blocks.join('\n\n') : '无匹配'
+  if (v.more && blocks.length > 0) blocks.push(`… há mais correspondências (total ${String(v.total)}); reduza a consulta ou adicione um prefixo de filtro`)
+  return blocks.length > 0 ? blocks.join('\n\n') : 'Sem correspondências'
 }
 
 function renderGlob(value: JsonValue): string {
   const v = value as unknown as GlobResult
   const lines = v.items.map((it) => it.relativePath)
-  if (v.truncated && lines.length > 0) lines.push(`… 还有更多匹配（total ${String(v.total)}），可缩窄 pattern`)
-  return lines.length > 0 ? lines.join('\n') : '无匹配'
+  if (v.truncated && lines.length > 0) lines.push(`… há mais correspondências (total ${String(v.total)}); reduza o pattern`)
+  return lines.length > 0 ? lines.join('\n') : 'Sem correspondências'
 }
 
 // --- registration ------------------------------------------------------------
@@ -171,11 +171,11 @@ export function registerFffTools(ctx: Context, picker: PickerManager, scanWaitMs
     },
     execute(args, exec: ToolRunContext): Promise<JsonValue> {
       const query = String(args.query ?? '').trim()
-      if (query === '') return Promise.resolve(fmtError('查询词不能为空'))
+      if (query === '') return Promise.resolve(fmtError('O termo de busca não pode ser vazio'))
       const pageSize = boundPage(args.pageSize, 20)
       return withFinder(picker, scanWaitMs, exec, (held) => {
         const r = held.finder.mixedSearch(query, { pageSize })
-        if (!r.ok) return errDetail('搜索失败', r.error)
+        if (!r.ok) return errDetail('Falha na busca', r.error)
         const items: FindItem[] = r.value.items.map((mixed) =>
           mixed.type === 'directory'
             ? { relativePath: mixed.item.relativePath, fileName: mixed.item.dirName.replace(/\/$/, ''), isDir: true }
@@ -233,7 +233,7 @@ export function registerFffTools(ctx: Context, picker: PickerManager, scanWaitMs
     },
     execute(args, exec: ToolRunContext): Promise<JsonValue> {
       const query = String(args.query ?? '').trim()
-      if (query === '') return Promise.resolve(fmtError('查询词不能为空'))
+      if (query === '') return Promise.resolve(fmtError('O termo de busca não pode ser vazio'))
       const mode: GrepMode = args.mode === 'regex' || args.mode === 'fuzzy' ? args.mode : 'plain'
       const pageSize = boundPage(args.pageSize, 50)
       const timeBudget = Number(args.timeBudgetMs)
@@ -247,7 +247,7 @@ export function registerFffTools(ctx: Context, picker: PickerManager, scanWaitMs
           classifyDefinitions: args.classifyDefinitions === true,
           ...(Number.isFinite(timeBudget) && timeBudget > 0 ? { timeBudgetMs: Math.floor(timeBudget) } : {}),
         })
-        if (!r.ok) return errDetail('搜索失败', r.error)
+        if (!r.ok) return errDetail('Falha na busca', r.error)
         const items: GrepItem[] = r.value.items.map((m) => ({
           relativePath: m.relativePath,
           fileName: m.fileName,
@@ -291,11 +291,11 @@ export function registerFffTools(ctx: Context, picker: PickerManager, scanWaitMs
     },
     execute(args, exec: ToolRunContext): Promise<JsonValue> {
       const pattern = String(args.pattern ?? '').trim()
-      if (pattern === '') return Promise.resolve(fmtError('pattern 不能为空'))
+      if (pattern === '') return Promise.resolve(fmtError('O pattern não pode ser vazio'))
       const pageSize = boundPage(args.pageSize, 100)
       return withFinder(picker, scanWaitMs, exec, (held) => {
         const r = held.finder.glob(pattern, { pageSize })
-        if (!r.ok) return errDetail('glob 匹配失败（pattern 可能不合法）', r.error)
+        if (!r.ok) return errDetail('Falha na correspondência glob (o pattern pode ser inválido)', r.error)
         return {
           ok: true,
           basePath: held.key,

@@ -60,7 +60,7 @@ function broadcastStatus(status: KernelStatusPayload): void {
   // Safe-mode tag: the steady-state labels (tooltip + ready card) must tell
   // the user the suite overlay is off; failure text stays verbatim so the
   // error detail is never mangled.
-  const tag = safeModeActive ? '（安全模式）' : ''
+  const tag = safeModeActive ? ' (modo de segurança)' : ''
   setTrayTooltip(status.phase === 'ready'
     ? `DSH APP — dsh ${kernel.getCurrent()?.manifest.dshVersion ?? ''}${tag}`
     : `DSH APP — ${status.message}${tag}`)
@@ -100,12 +100,12 @@ function classifyRecentServerFailure(): ServerFailureKind {
   return 'other'
 }
 
-/** Conclusion + one actionable suggestion per failure kind (zh-CN, user-facing). */
+/** Conclusion + one actionable suggestion per failure kind (pt-BR, user-facing). */
 const SERVER_FAILURE_ADVICE: Record<ServerFailureKind, string> = {
-  'plugin-tree': '疑似套件插件加载失败（patch 冲突或配置无效）。可尝试以安全模式重启，跳过套件插件后排查。',
-  port: '服务端口被占用。请确认没有另一个 DSH APP 实例正在运行，然后重试。',
-  module: '内核缺少模块文件，安装可能不完整。可从托盘菜单执行「检查内核更新」重装内核。',
-  other: '可查看安装目录 logs 文件夹中最新的 dsh-server 日志定位原因。',
+  'plugin-tree': 'Suspeita de falha ao carregar o plugin do pacote (conflito de patch ou configuração inválida). Tente reiniciar no modo de segurança, ignorando os plugins do pacote para diagnosticar.',
+  port: 'A porta do serviço está em uso. Verifique se não há outra instância do DSH APP em execução e tente novamente.',
+  module: 'O kernel está sem arquivos de módulo; a instalação pode estar incompleta. Use "Verificar atualização do kernel" no menu da bandeja para reinstalá-lo.',
+  other: 'Consulte o log dsh-server mais recente na pasta logs do diretório de instalação para descobrir o motivo.',
 }
 
 /**
@@ -128,17 +128,17 @@ async function restartWithSafeMode(enabled: boolean): Promise<void> {
  */
 async function reportStartupFailureAndExit(): Promise<void> {
   const kind = classifyRecentServerFailure()
-  const message = `dsh 服务无法启动。${SERVER_FAILURE_ADVICE[kind]}`
+  const message = `Não foi possível iniciar o serviço dsh. ${SERVER_FAILURE_ADVICE[kind]}`
   if (kind === 'plugin-tree') {
     const choice = await promptThemedConfirm<'safe' | 'quit'>(
       mainWindow,
       {
         title: 'DSH APP',
         message,
-        detail: '以安全模式重启将跳过套件插件，仅加载官方内核与你自己的配置。',
+        detail: 'Reiniciar no modo de segurança ignora os plugins do pacote e carrega apenas o kernel oficial com as suas próprias configurações.',
         buttons: [
-          { label: '退出', value: 'quit' },
-          { label: '以安全模式重启', value: 'safe', primary: true },
+          { label: 'Sair', value: 'quit' },
+          { label: 'Reiniciar no modo de segurança', value: 'safe', primary: true },
         ],
         cancelValue: 'quit',
         enterValue: 'safe',
@@ -147,8 +147,8 @@ async function reportStartupFailureAndExit(): Promise<void> {
         type: 'error',
         title: 'DSH APP',
         message,
-        detail: '以安全模式重启将跳过套件插件，仅加载官方内核与你自己的配置。',
-        buttons: ['以安全模式重启', '退出'],
+        detail: 'Reiniciar no modo de segurança ignora os plugins do pacote e carrega apenas o kernel oficial com as suas próprias configurações.',
+        buttons: ['Reiniciar no modo de segurança', 'Sair'],
         defaultId: 0,
         cancelId: 1,
       },
@@ -159,7 +159,7 @@ async function reportStartupFailureAndExit(): Promise<void> {
       return
     }
   } else {
-    await promptNoticeThemed(mainWindow, 'error', 'DSH APP', `${message}\n\n应用即将退出。`)
+    await promptNoticeThemed(mainWindow, 'error', 'DSH APP', `${message}\n\nO aplicativo será encerrado.`)
   }
   app.quit()
 }
@@ -206,7 +206,7 @@ async function promptNoticeThemed(
     type,
     title,
     message,
-    inFrameDialogScript({ title, message, buttons: [{ label: '确定', value: 'ok', primary: true }], cancelValue: 'ok', enterValue: 'ok' }),
+    inFrameDialogScript({ title, message, buttons: [{ label: 'OK', value: 'ok', primary: true }], cancelValue: 'ok', enterValue: 'ok' }),
   )
 }
 
@@ -224,9 +224,9 @@ async function promptCloseChoice(win: BrowserWindow | null): Promise<CloseDialog
     CLOSE_DIALOG_SCRIPT,
     {
       type: 'question',
-      title: '关闭 DSH APP',
-      message: '关闭窗口后要如何运行？',
-      buttons: ['最小化到托盘', '退出程序', '取消'],
+      title: 'Fechar DSH APP',
+      message: 'Como deseja prosseguir ao fechar a janela?',
+      buttons: ['Minimizar para a bandeja', 'Sair do aplicativo', 'Cancelar'],
       defaultId: 0,
       cancelId: 2,
       noLink: true,
@@ -242,7 +242,7 @@ async function startServerAndOpenWindow(): Promise<void> {
   if (quitting) return
   // Ring reset: failure classification must reflect THIS startup attempt only.
   serverLogRing.length = 0
-  broadcastStatus({ phase: 'starting', message: '正在启动 dsh 服务…', progress: null })
+  broadcastStatus({ phase: 'starting', message: 'Iniciando o serviço dsh…', progress: null })
   const port = await findFreePort()
   // Brand suite wiring: profile-dir module links + the loader overlay that
   // inserts the brand rows. An older kernel without the suite plugins boots
@@ -262,7 +262,7 @@ async function startServerAndOpenWindow(): Promise<void> {
   try {
     await server.start(kernel.getServerSpec(), port, DEFAULT_HTTP_HOST, overlays, scrubbed.env)
   } catch (err) {
-    await handleServerDown(`启动失败：${(err as Error).message}`)
+    await handleServerDown(`Falha ao iniciar: ${(err as Error).message}`)
     return
   }
   const url = server.serverUrl
@@ -305,7 +305,7 @@ async function startServerAndOpenWindow(): Promise<void> {
   }
   restartAttempts = 0
   void kernel.cleanup()
-  broadcastStatus({ phase: 'ready', message: '就绪', progress: null })
+  broadcastStatus({ phase: 'ready', message: 'Pronto', progress: null })
   updateTrayMenu()
 }
 
@@ -313,7 +313,7 @@ async function handleServerDown(reason: string): Promise<void> {
   if (quitting) return
   restartAttempts += 1
   console.error(`[server] down: ${reason} (attempt ${restartAttempts})`)
-  broadcastStatus({ phase: 'error', message: `服务${reason}`, progress: null, error: reason })
+  broadcastStatus({ phase: 'error', message: `Serviço ${reason}`, progress: null, error: reason })
 
   if (restartAttempts >= 2 && !isDev) {
     const rolledBack = await kernel.rollback()
@@ -322,7 +322,7 @@ async function handleServerDown(reason: string): Promise<void> {
       // the next start (e.g. a broken user patch layer). Only a genuinely
       // ready server (above) resets the counter, so persistent failures
       // terminate instead of looping forever.
-      void promptNoticeThemed(mainWindow, 'warning', 'DSH APP', `内核更新启动失败，已回滚到 dsh ${rolledBack.manifest.dshVersion}。`)
+      void promptNoticeThemed(mainWindow, 'warning', 'DSH APP', `Falha ao iniciar após a atualização do kernel; revertido para dsh ${rolledBack.manifest.dshVersion}.`)
       await startServerAndOpenWindow()
       return
     }
@@ -363,19 +363,19 @@ async function installKernel(): Promise<void> {
     await startServerAndOpenWindow()
   } catch (err) {
     const detail = (err as Error).message
-    broadcastStatus({ phase: 'error', message: '安装失败', progress: null, error: detail })
+    broadcastStatus({ phase: 'error', message: 'Falha na instalação', progress: null, error: detail })
     // broadcastStatus only paints an update card and the tray tooltip. On a
     // first run there is no window to paint, so the user was left with a dead
     // app and no explanation; the themed dialog falls back to a native one
     // when the window is absent.
-    void promptNoticeThemed(mainWindow, 'error', 'DSH APP', `内核安装失败：${detail}\n\n请检查网络连接，然后从托盘菜单重新执行「检查内核更新」。`)
+    void promptNoticeThemed(mainWindow, 'error', 'DSH APP', `Falha ao instalar o kernel: ${detail}\n\nVerifique a conexão de rede e use "Verificar atualização do kernel" no menu da bandeja.`)
   }
 }
 
-const KERNEL_CHANNEL_LABEL_ZH: Record<string, string> = {
-  stable: '正式版',
-  beta: '候选版',
-  alpha: '测试版',
+const KERNEL_CHANNEL_LABEL: Record<string, string> = {
+  stable: 'Estável',
+  beta: 'Candidata (RC)',
+  alpha: 'Alfa',
 }
 
 /** Guards against overlapping checks: the 6 h timer and a tray click can land
@@ -397,7 +397,7 @@ async function checkKernelUpdateInner(manual: boolean): Promise<void> {
     const result = await kernel.checkForUpdate()
     // Nothing installed is not "up to date": there is no update to offer
     // because there is no kernel, and the message switch below would report
-    // the reassuring-but-wrong "内核已是最新版本" while blocking recovery.
+    // the reassuring-but-wrong "o kernel já está na versão mais recente" while blocking recovery.
     if (manual && result.reason === 'no kernel installed') {
       await installKernel()
       return
@@ -418,18 +418,18 @@ async function checkKernelUpdateInner(manual: boolean): Promise<void> {
         // Dev mode can detect a newer version but cannot auto-install; tell
         // the user what's available rather than a flat "up to date".
         const message = result.reason === 'dev mode update available'
-          ? `开发模式下内核固定为本地源码，不支持自动更新。\n检测到新版本：dsh ${result.current} → ${result.latest}。\n请以正式安装方式启动后更新，或手动拉取源码。`
+          ? `No modo de desenvolvimento, o kernel usa o código-fonte local e não oferece atualização automática.\nNova versão detectada: dsh ${result.current} → ${result.latest}.\nInicie pelo modo de instalação oficial para atualizar ou puxe o código-fonte manualmente.`
           : result.reason === 'dev mode'
-            ? `开发模式下内核固定为本地源码，不支持在线更新。\n当前版本：dsh ${result.current ?? '未知'}（已是最新）。`
+            ? `No modo de desenvolvimento, o kernel usa o código-fonte local e não suporta atualização online.\nVersão atual: dsh ${result.current ?? 'desconhecida'} (já é a mais recente).`
             : result.reason === 'registry unreachable'
-              ? '无法连接更新源，请检查网络后重试。'
+              ? 'Não foi possível conectar à fonte de atualização. Verifique a rede e tente novamente.'
               : result.reason === 'artifact pending'
-                ? `检测到新版本 dsh ${result.latest}，但安装包尚未发布。\n将保持当前版本（dsh ${result.current ?? '未知'}），请稍后再试。`
+                ? `Foi detectada a nova versão dsh ${result.latest}, mas o pacote ainda não foi publicado.\nA versão atual (dsh ${result.current ?? 'desconhecida'}) será mantida. Tente novamente mais tarde.`
                 : result.reason === 'github unreachable'
-                  ? '无法连接更新源（GitHub），请检查网络或稍后重试。'
+                  ? 'Não foi possível conectar à fonte de atualização (GitHub). Verifique a rede ou tente novamente mais tarde.'
                   : result.reason === 'install in progress'
-                    ? '内核更新或安装正在进行中，请稍候再检查。'
-                    : `内核已是最新版本（dsh ${result.current ?? '未知'}）。`
+                    ? 'Uma atualização ou instalação do kernel está em andamento. Aguarde um momento para verificar novamente.'
+                    : `O kernel já está na versão mais recente (dsh ${result.current ?? 'desconhecida'}).`
         void promptNoticeThemed(mainWindow, 'info', 'DSH APP', message)
       }
       return
@@ -440,25 +440,25 @@ async function checkKernelUpdateInner(manual: boolean): Promise<void> {
       // with one button per line when the user chooses. Unlike the old 5 s
       // toast this stays visible until acted on, so a quiet channel cannot be
       // missed mid-work; the user decides when to restart the server.
-      const choice = await showKernelUpdateCard(mainWindow, result.current ?? '未知', options)
+      const choice = await showKernelUpdateCard(mainWindow, result.current ?? 'desconhecida', options)
       if (choice !== 'later') await applyKernelUpdate(choice)
       return
     }
     const optionLabel = (o: { version: string; channel: string }): string =>
       options.length > 1
-        ? `更新到 dsh ${o.version}（${KERNEL_CHANNEL_LABEL_ZH[o.channel] ?? o.channel}）`
-        : `更新到 dsh ${o.version}`
+        ? `Atualizar para dsh ${o.version} (${KERNEL_CHANNEL_LABEL[o.channel] ?? o.channel})`
+        : `Atualizar para dsh ${o.version}`
     const primaryVersion = options.find((o) => o.primary)?.version ?? options[0].version
     const picked = await promptThemedConfirm(
       mainWindow,
       {
-        title: '内核更新可用',
+        title: 'Atualização do kernel disponível',
         message: options.length > 1
-          ? `dsh ${result.current} 有多个新版本可选`
+          ? `Há várias versões novas disponíveis para o dsh ${result.current}`
           : `dsh ${result.current} → ${options[0].version}`,
-        detail: '选择要安装的版本，服务将会重启。',
+        detail: 'Escolha a versão a instalar; o serviço será reiniciado.',
         buttons: [
-          { label: '稍后', value: 'later' },
+          { label: 'Agora não', value: 'later' },
           ...options.map((o) => ({ label: optionLabel(o), value: o.version, primary: o.primary })),
         ],
         cancelValue: 'later',
@@ -466,12 +466,12 @@ async function checkKernelUpdateInner(manual: boolean): Promise<void> {
       },
       {
         type: 'info',
-        title: '内核更新可用',
+        title: 'Atualização do kernel disponível',
         message: options.length > 1
-          ? `dsh ${result.current} 有多个新版本可选`
+          ? `Há várias versões novas disponíveis para o dsh ${result.current}`
           : `dsh ${result.current} → ${options[0].version}`,
-        detail: '选择要安装的版本，服务将会重启。',
-        buttons: ['稍后', ...options.map((o) => optionLabel(o))],
+        detail: 'Escolha a versão a instalar; o serviço será reiniciado.',
+        buttons: ['Agora não', ...options.map((o) => optionLabel(o))],
         defaultId: 0,
         cancelId: 0,
       },
@@ -485,22 +485,22 @@ async function checkKernelUpdateInner(manual: boolean): Promise<void> {
     )
     if (picked) await applyKernelUpdate(picked)
   } catch (err) {
-    if (manual) void promptNoticeThemed(mainWindow, 'error', 'DSH APP', `更新检查失败：${(err as Error).message}`)
+    if (manual) void promptNoticeThemed(mainWindow, 'error', 'DSH APP', `Falha ao verificar atualização: ${(err as Error).message}`)
   }
 }
 
 async function applyKernelUpdate(version: string): Promise<void> {
   try {
     const installed = await kernel.installVersion(version)
-    broadcastStatus({ phase: 'installing', message: `已激活 dsh ${installed.manifest.dshVersion}`, progress: null })
+    broadcastStatus({ phase: 'installing', message: `dsh ${installed.manifest.dshVersion} ativado`, progress: null })
     await startServerAndOpenWindow()
     // The server restart's own starting→ready cycle clears the card, so the
     // one-shot success toast lands afterwards and is visible for 3 s. Wait
     // for the reloaded page first — injecting mid-loadURL would wipe the
     // toast with the old document.
-    void showToastWhenLoaded(mainWindow, `内核已更新到 dsh ${installed.manifest.dshVersion}`, 'success', 3_000)
+    void showToastWhenLoaded(mainWindow, `Kernel atualizado para dsh ${installed.manifest.dshVersion}`, 'success', 3_000)
   } catch (err) {
-    void promptNoticeThemed(mainWindow, 'error', 'DSH APP', `内核更新失败：${(err as Error).message}`)
+    void promptNoticeThemed(mainWindow, 'error', 'DSH APP', `Falha na atualização do kernel: ${(err as Error).message}`)
   }
 }
 
@@ -557,7 +557,7 @@ async function boot(): Promise<void> {
   })
 
   server = new DshServer({
-    onExit: (code, signal) => void handleServerDown(`已退出（code ${code ?? '?'}, signal ${signal ?? '?'})`),
+    onExit: (code, signal) => void handleServerDown(`encerrado (código ${code ?? '?'}, sinal ${signal ?? '?'})`),
     onLog: (line) => {
       console.log('[server]', line)
       recordServerLog(line)

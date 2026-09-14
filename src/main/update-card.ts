@@ -135,7 +135,7 @@ export const UPDATE_CARD_SCRIPT = (payload: UpdateCardPayload): string => `(func
  * Persistent "kernel update available" card script (pure, testable).
  *
  * Renders a fixed bottom-right card into the loaded dsh web UI: a heading,
- * the running version, and one button per installable option plus `稍后`.
+ * the running version, and one button per installable option plus `later`.
  * Unlike {@link UPDATE_CARD_SCRIPT} it never auto-hides — a background kernel
  * check surfaces its finding once, and the card stays until the user either
  * acts on it or closes it, so a quiet update is not missed while remaining
@@ -149,7 +149,7 @@ export const UPDATE_CARD_SCRIPT = (payload: UpdateCardPayload): string => `(func
  *
  * The promise it returns is what the shell's `executeJavaScript` awaits: it
  * resolves with the chosen option's version, or 'later' when the user clicks
- * 稍后, and with 'later' when a re-invocation replaces the card (each
+ * "Agora não", and with 'later' when a re-invocation replaces the card (each
  * invocation is a fresh card; a stale one settles as 'later').
  *
  * Kept in this module for the same reason as UPDATE_CARD_SCRIPT: probe
@@ -163,9 +163,9 @@ export interface KernelUpdateCardOption {
 }
 
 const KERNEL_CHANNEL_LABEL: Record<KernelChannel, string> = {
-  stable: '正式版',
-  beta: '候选版',
-  alpha: '测试版',
+  stable: 'Estável',
+  beta: 'Candidata (RC)',
+  alpha: 'Alfa',
 }
 
 export const KERNEL_UPDATE_CARD_SCRIPT = (payload: { current: string; options: KernelUpdateCardOption[] }): string => `(function () {
@@ -210,12 +210,12 @@ export const KERNEL_UPDATE_CARD_SCRIPT = (payload: { current: string; options: K
 
   var title = document.createElement('div');
   style(title, 'font-size:13px;font-weight:600;color:' + ink + ';line-height:1.5;');
-  title.textContent = cfg.options.length > 1 ? '发现多个内核更新' : '发现内核更新';
+  title.textContent = cfg.options.length > 1 ? 'Várias atualizações do kernel encontradas' : 'Atualização do kernel encontrada';
   root.appendChild(title);
 
   var detail = document.createElement('div');
   style(detail, 'font-size:12px;color:' + inkSecondary + ';line-height:1.6;');
-  detail.textContent = '当前版本 dsh ' + cfg.current + '。更新将下载新运行时并重启服务。';
+  detail.textContent = 'Versão atual: dsh ' + cfg.current + '. A atualização baixará o novo runtime e reiniciará o serviço.';
   root.appendChild(detail);
 
   function button(spec) {
@@ -236,14 +236,14 @@ export const KERNEL_UPDATE_CARD_SCRIPT = (payload: { current: string; options: K
 
   var actions = document.createElement('div');
   style(actions, 'display:flex;gap:8px;justify-content:flex-end;margin-top:2px;flex-wrap:wrap;');
-  actions.appendChild(button({ label: '稍后', value: 'later' }));
+  actions.appendChild(button({ label: 'Agora não', value: 'later' }));
   for (var i = 0; i < cfg.options.length; i++) {
     var opt = cfg.options[i];
     var lineLabel = CHANNEL_LABEL[opt.channel] || opt.channel;
     actions.appendChild(button({
       label: cfg.options.length > 1
-        ? '更新到 ' + opt.version + '（' + lineLabel + '）'
-        : '立即更新到 ' + opt.version,
+        ? 'Atualizar para ' + opt.version + ' (' + lineLabel + ')'
+        : 'Atualizar agora para ' + opt.version,
       value: opt.version,
       primary: !!opt.primary,
     }));

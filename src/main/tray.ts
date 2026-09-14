@@ -43,28 +43,28 @@ export function createTray(callbacks: TrayCallbacks): Tray {
 /** Build the tray menu, stamping the current kernel version into its label. */
 function buildTrayMenu(callbacks: TrayCallbacks): Electron.Menu {
   const version = callbacks.getCurrentVersion()
-  const kernelLabel = version ? `检查内核更新…（当前 dsh ${version}）` : '检查内核更新…'
+  const kernelLabel = version ? `Verificar atualização do kernel… (dsh ${version} atual)` : 'Verificar atualização do kernel…'
   return Menu.buildFromTemplate([
-    { label: `打开 ${APP_NAME}`, click: callbacks.onOpen },
+    { label: `Abrir ${APP_NAME}`, click: callbacks.onOpen },
     { type: 'separator' },
     { label: kernelLabel, click: callbacks.onCheckKernelUpdate },
-    { label: '检查应用更新…', click: callbacks.onCheckAppUpdate },
+    { label: 'Verificar atualização do aplicativo…', click: callbacks.onCheckAppUpdate },
     { type: 'separator' },
-    { label: '重启服务', click: callbacks.onRestartServer },
+    { label: 'Reiniciar serviço', click: callbacks.onRestartServer },
     // Windows-only: rollback drives the custom shell-update chain (tagged
     // release assets + latest.yml + NSIS wizard); macOS/Linux update through
     // electron-updater, which has no per-release asset contract to lean on.
     ...(process.platform === 'win32'
-      ? [{ label: '回滚到上一版本', click: callbacks.onRollbackApp }]
+      ? [{ label: 'Reverter para a versão anterior', click: callbacks.onRollbackApp }]
       : []),
     { type: 'separator' },
     // Mutually exclusive by state: toggling safe mode relaunches the app, so
     // the label never needs live-refreshing within one session.
     callbacks.isSafeMode()
-      ? { label: '退出安全模式', click: callbacks.onToggleSafeMode }
-      : { label: '以安全模式重启', click: callbacks.onToggleSafeMode },
+      ? { label: 'Sair do modo de segurança', click: callbacks.onToggleSafeMode }
+      : { label: 'Reiniciar no modo de segurança', click: callbacks.onToggleSafeMode },
     { type: 'separator' },
-    { label: '退出', click: () => app.quit() },
+    { label: 'Sair', click: () => app.quit() },
   ])
 }
 

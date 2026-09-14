@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <strong>简体中文</strong> · <a href="README.en.md">English</a>
+  <strong>简体中文</strong> · <a href="README.en.md">English</a> · <a href="README.pt-BR.md">Português (Brasil)</a>
 </p>
 
 外壳自带一份版本化的 dsh 运行时（更新/回滚自管理），在沙箱窗口渲染官方 dsh Web UI；

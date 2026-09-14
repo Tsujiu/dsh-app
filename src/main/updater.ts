@@ -67,7 +67,7 @@ async function noticeInFrame(
     inFrameDialogScript({
       title,
       message,
-      buttons: [{ label: '确定', value: 'ok', primary: true }],
+      buttons: [{ label: 'OK', value: 'ok', primary: true }],
       cancelValue: 'ok',
       enterValue: 'ok',
     }),
@@ -103,22 +103,22 @@ export function initShellUpdater(): void {
   autoUpdater.on('update-available', async (info) => {
     const proceed = await confirmInFrame(
       {
-        title: `${APP_NAME} 更新可用`,
-        message: `发现新版本 ${APP_NAME}（${info.version}）。`,
-        detail: '现在下载并安装？应用将在完成后重启。',
+        title: `${APP_NAME} — atualização disponível`,
+        message: `Uma nova versão do ${APP_NAME} (${info.version}) foi encontrada.`,
+        detail: 'Baixar e instalar agora? O aplicativo será reiniciado ao concluir.',
         buttons: [
-          { label: '稍后', value: 'later' },
-          { label: '下载', value: 'download', primary: true },
+          { label: 'Agora não', value: 'later' },
+          { label: 'Baixar', value: 'download', primary: true },
         ],
         cancelValue: 'later',
         enterValue: 'download',
       },
       {
         type: 'info',
-        title: `${APP_NAME} 更新可用`,
-        message: `发现新版本 ${APP_NAME}（${info.version}）。`,
-        detail: '现在下载并安装？应用将在完成后重启。',
-        buttons: ['下载', '稍后'],
+        title: `${APP_NAME} — atualização disponível`,
+        message: `Uma nova versão do ${APP_NAME} (${info.version}) foi encontrada.`,
+        detail: 'Baixar e instalar agora? O aplicativo será reiniciado ao concluir.',
+        buttons: ['Baixar', 'Agora não'],
         defaultId: 0,
         cancelId: 1,
       },
@@ -128,7 +128,7 @@ export function initShellUpdater(): void {
       try {
         await autoUpdater.downloadUpdate()
       } catch (err) {
-        void showDownloadError(`下载失败：${(err as Error).message}`)
+        void showDownloadError(`Falha no download: ${(err as Error).message}`)
       }
     }
   })
@@ -136,20 +136,20 @@ export function initShellUpdater(): void {
   autoUpdater.on('update-downloaded', async () => {
     const proceed = await confirmInFrame(
       {
-        title: `${APP_NAME} 更新就绪`,
-        message: '更新已下载完成，将在退出时安装。',
+        title: `${APP_NAME} — atualização pronta`,
+        message: 'A atualização foi baixada e será instalada ao sair.',
         buttons: [
-          { label: '稍后', value: 'later' },
-          { label: '立即重启', value: 'restart', primary: true },
+          { label: 'Agora não', value: 'later' },
+          { label: 'Reiniciar agora', value: 'restart', primary: true },
         ],
         cancelValue: 'later',
         enterValue: 'restart',
       },
       {
         type: 'info',
-        title: `${APP_NAME} 更新就绪`,
-        message: '更新已下载完成，将在退出时安装。',
-        buttons: ['立即重启', '稍后'],
+        title: `${APP_NAME} — atualização pronta`,
+        message: 'A atualização foi baixada e será instalada ao sair.',
+        buttons: ['Reiniciar agora', 'Agora não'],
         defaultId: 0,
         cancelId: 1,
       },
@@ -267,7 +267,7 @@ function sourceLabel(url: string): string {
  * GitHub: the mainland failure topology is asymmetric — a small latest.yml
  * often slips through (corporate proxy / brief connectivity) while a ~180 MB
  * installer consistently dies. Without the trailing mirror those users only
- * ever see "请手动下载". Every candidate is gated by the sha512 taken from
+ * ever see "baixe manualmente". Every candidate is gated by the sha512 taken from
  * that same latest.yml, so a mirror serving a *different* build (lagging or
  * tampered) fails verification and falls through — it can degrade to a
  * slower download, never substitute content. When metadata came from the
@@ -305,7 +305,7 @@ async function sha512Base64(filePath: string): Promise<string> {
 }
 
 /** Actionable suffix for any "every source failed" message (user-visible). */
-export const MANUAL_DOWNLOAD_HINT = `可手动从镜像仓库下载：${MODELSCOPE_RELEASES_URL}`
+export const MANUAL_DOWNLOAD_HINT = `Você também pode baixar manualmente do repositório espelho: ${MODELSCOPE_RELEASES_URL}`
 
 /**
  * Per-candidate download timeout. 180 s is generous for a ~180 MB installer
@@ -345,7 +345,7 @@ export async function downloadWithFallback(
       }
       const actual = await sha512Base64(dest)
       if (actual !== expectedSha512) {
-        throw new Error(`完整性校验失败（期望 ${expectedSha512.slice(0, 16)}…，实际 ${actual.slice(0, 16)}…）`)
+        throw new Error(`Falha na verificação de integridade (esperado ${expectedSha512.slice(0, 16)}…, obtido ${actual.slice(0, 16)}…)`)
       }
       return url
     } catch (err) {
@@ -353,18 +353,18 @@ export async function downloadWithFallback(
       console.error(`[shell-updater] candidate failed (${url}): ${(err as Error).message}`)
     }
   }
-  throw new Error(`无法从任何源下载更新包：${lastError?.message ?? '未知错误'}。${MANUAL_DOWNLOAD_HINT}`)
+  throw new Error(`Não foi possível baixar o pacote de atualização de nenhuma das fontes: ${lastError?.message ?? 'erro desconhecido'}. ${MANUAL_DOWNLOAD_HINT}`)
 }
 
 async function showDownloadError(message: string): Promise<void> {
   const proceed = await confirmInFrame(
     {
       title: APP_NAME,
-      message: `应用更新失败：${message}`,
-      detail: '你可以稍后重试，或从镜像仓库手动下载安装包。',
+      message: `Falha na atualização do aplicativo: ${message}`,
+      detail: 'Você pode tentar novamente mais tarde ou baixar o instalador manualmente no repositório espelho.',
       buttons: [
-        { label: '关闭', value: 'close' },
-        { label: '打开镜像下载页', value: 'open', primary: true },
+        { label: 'Fechar', value: 'close' },
+        { label: 'Abrir página de download do espelho', value: 'open', primary: true },
       ],
       cancelValue: 'close',
       enterValue: 'open',
@@ -372,9 +372,9 @@ async function showDownloadError(message: string): Promise<void> {
     {
       type: 'error',
       title: APP_NAME,
-      message: `应用更新失败：${message}`,
-      detail: '你可以稍后重试，或从镜像仓库手动下载安装包。',
-      buttons: ['打开镜像下载页', '关闭'],
+      message: `Falha na atualização do aplicativo: ${message}`,
+      detail: 'Você pode tentar novamente mais tarde ou baixar o instalador manualmente no repositório espelho.',
+      buttons: ['Abrir página de download do espelho', 'Fechar'],
       defaultId: 1,
       cancelId: 1,
     },
@@ -519,28 +519,28 @@ type UpdateConfirmChoice = 'install' | 'skip' | 'cancel'
  * native fallback maps response indexes to the same outcomes.
  */
 async function promptUpdateConfirm(win: BrowserWindow | null, current: string, version: string): Promise<UpdateConfirmChoice> {
-  const message = `发现新版本 ${APP_NAME}（${version}）。`
-  const detail = `当前 v${current} → v${version}。将下载并静默安装，安装完成后需重新打开应用。`
+  const message = `Uma nova versão do ${APP_NAME} (${version}) foi encontrada.`
+  const detail = `v${current} → v${version}. Ela será baixada e instalada silenciosamente; será necessário reabrir o aplicativo após a conclusão.`
   return promptThemedDialog<UpdateConfirmChoice>(
     win,
     inFrameDialogScript({
-      title: `${APP_NAME} 更新可用`,
+      title: `${APP_NAME} — atualização disponível`,
       message,
       detail,
       buttons: [
-        { label: '立即更新', value: 'install', primary: true },
-        { label: '跳过此版本', value: 'skip' },
-        { label: '取消', value: 'cancel' },
+        { label: 'Atualizar agora', value: 'install', primary: true },
+        { label: 'Ignorar esta versão', value: 'skip' },
+        { label: 'Cancelar', value: 'cancel' },
       ],
       cancelValue: 'cancel',
       enterValue: 'install',
     }),
     {
       type: 'info',
-      title: `${APP_NAME} 更新可用`,
+      title: `${APP_NAME} — atualização disponível`,
       message,
       detail,
-      buttons: ['立即更新', '跳过此版本', '取消'],
+      buttons: ['Atualizar agora', 'Ignorar esta versão', 'Cancelar'],
       defaultId: 0,
       cancelId: 2,
     },
@@ -559,22 +559,22 @@ async function promptUpdateConfirm(win: BrowserWindow | null, current: string, v
 async function promptSkippedVersionConfirm(win: BrowserWindow | null, version: string): Promise<UpdateConfirmChoice> {
   const proceed = await confirmInFrame(
     {
-      title: `${APP_NAME} 更新可用`,
-      message: `检测到 ${APP_NAME} ${version}（你曾跳过此版本）。`,
-      detail: '仍要安装该版本吗？',
+      title: `${APP_NAME} — atualização disponível`,
+      message: `O ${APP_NAME} ${version} foi detectado (você ignorou esta versão anteriormente).`,
+      detail: 'Ainda deseja instalar esta versão?',
       buttons: [
-        { label: '保持跳过', value: 'cancel' },
-        { label: '仍要安装', value: 'install', primary: true },
+        { label: 'Manter ignorado', value: 'cancel' },
+        { label: 'Instalar mesmo assim', value: 'install', primary: true },
       ],
       cancelValue: 'cancel',
       enterValue: 'install',
     },
     {
       type: 'info',
-      title: `${APP_NAME} 更新可用`,
-      message: `检测到 ${APP_NAME} ${version}（你曾跳过此版本）。`,
-      detail: '仍要安装该版本吗？',
-      buttons: ['仍要安装', '保持跳过'],
+      title: `${APP_NAME} — atualização disponível`,
+      message: `O ${APP_NAME} ${version} foi detectado (você ignorou esta versão anteriormente).`,
+      detail: 'Ainda deseja instalar esta versão?',
+      buttons: ['Instalar mesmo assim', 'Manter ignorado'],
       defaultId: 0,
       cancelId: 1,
     },
@@ -589,26 +589,26 @@ async function checkShellUpdateWin32(manual: boolean, win: BrowserWindow | null)
   if (busy) {
     // A check is already running; manual clicks deserve feedback instead of a
     // silent no-op (auto checks stay quiet).
-    if (manual) showUpdateToast(win, '正在检查应用更新，请稍候…', 'progress', 3_000)
+    if (manual) showUpdateToast(win, 'Verificando atualização do aplicativo, aguarde…', 'progress', 3_000)
     return
   }
   busy = true
   try {
-    showUpdateToast(win, '正在检查应用更新…', 'progress', undefined)
+    showUpdateToast(win, 'Verificando atualização do aplicativo…', 'progress', undefined)
     const meta = await fetchAndParseLatest()
-    if (!meta) throw new Error(`无法获取更新元数据（latest.yml）或格式无法解析。${MANUAL_DOWNLOAD_HINT}`)
+    if (!meta) throw new Error(`Não foi possível obter os metadados de atualização (latest.yml) ou o formato é inválido. ${MANUAL_DOWNLOAD_HINT}`)
     const yaml = meta.yaml
     // Version is spliced into an installer filename and the pending-install
     // record; constrain it to a safe charset so a crafted metadata value can
     // never break the path or the spawn target (defense in depth for an
     // unsigned latest.yml).
-    if (!isSafeVersion(yaml.version)) throw new Error('更新元数据版本格式异常')
+    if (!isSafeVersion(yaml.version)) throw new Error('Formato de versão inválido nos metadados de atualização')
 
     const current = app.getVersion()
     const newer = isNewerThan(yaml.version, current)
     if (!newer) {
       clearKernelProgress(win)
-      if (manual) void noticeInFrame(win, 'info', APP_NAME, `已是最新版本（${APP_NAME} ${current}）。`)
+      if (manual) void noticeInFrame(win, 'info', APP_NAME, `Já está na versão mais recente (${APP_NAME} ${current}).`)
       return
     }
 
@@ -621,11 +621,11 @@ async function checkShellUpdateWin32(manual: boolean, win: BrowserWindow | null)
     }
 
     const asset = pickAsset(yaml.files, process.arch)
-    if (!asset) throw new Error('未找到适用于当前系统的安装包')
+    if (!asset) throw new Error('Nenhum instalador compatível com o sistema atual foi encontrado')
     // Same charset guard for the asset filename (spliced into the download
     // URL and the spawned installer path): a crafted value must fail safely,
     // never inject.
-    if (!/^[\w.~-]+\.exe$/.test(asset.url)) throw new Error('更新包文件名格式异常')
+    if (!/^[\w.~-]+\.exe$/.test(asset.url)) throw new Error('Formato de nome do arquivo de atualização inválido')
 
     const choice = skippedVersion === yaml.version
       ? await promptSkippedVersionConfirm(win, yaml.version)
@@ -633,7 +633,7 @@ async function checkShellUpdateWin32(manual: boolean, win: BrowserWindow | null)
     if (choice === 'skip') {
       await writeSkippedVersion(yaml.version)
       clearKernelProgress(win)
-      showUpdateToast(win, `已跳过 ${APP_NAME} ${yaml.version}，之后将不再自动提醒`, 'success', 3_000)
+      showUpdateToast(win, `Você ignorou o ${APP_NAME} ${yaml.version}; não avisaremos mais automaticamente`, 'success', 3_000)
       return
     }
     if (choice !== 'install') {
@@ -642,9 +642,9 @@ async function checkShellUpdateWin32(manual: boolean, win: BrowserWindow | null)
     }
 
     await downloadAndInstallPackage(win, yaml.version, asset, assetCandidates(UPDATER_OWNER, UPDATER_REPO, asset.url, meta.source), {
-      title: `${APP_NAME} 更新就绪`,
-      message: `将关闭当前应用并打开 ${APP_NAME} ${yaml.version} 安装向导（与首次安装相同）。`,
-      detail: '按向导完成安装后，应用会重新启动。安装包将在安装完成后自动删除。',
+      title: `${APP_NAME} — atualização pronta`,
+      message: `O aplicativo atual será fechado e o assistente de instalação do ${APP_NAME} ${yaml.version} será aberto (como na primeira instalação).`,
+      detail: 'Depois de concluir a instalação pelo assistente, o aplicativo será reiniciado. O instalador será removido automaticamente após a conclusão.',
     })
   } catch (err) {
     console.error('[shell-updater]', (err as Error).message)
@@ -683,13 +683,13 @@ async function downloadAndInstallPackage(
       lastEmit = now
       showKernelProgress(win, {
         phase: 'downloading',
-        message: `正在下载 ${APP_NAME} ${version}…`,
+        message: `Baixando ${APP_NAME} ${version}…`,
         progress: total > 0 ? Math.min(1, received / total) : null,
       })
     },
   )
   console.log(`[shell-updater] downloaded ${asset.url} from ${downloadedFrom}`)
-  showUpdateToast(win, `${APP_NAME} ${version} 下载完成`, 'success', 3_000)
+  showUpdateToast(win, `Download do ${APP_NAME} ${version} concluído`, 'success', 3_000)
 
   const install = await confirmInFrame(
     {
@@ -697,8 +697,8 @@ async function downloadAndInstallPackage(
       message: installPrompt.message,
       detail: installPrompt.detail,
       buttons: [
-        { label: '稍后', value: 'later' },
-        { label: '立即安装', value: 'install', primary: true },
+        { label: 'Agora não', value: 'later' },
+        { label: 'Instalar agora', value: 'install', primary: true },
       ],
       cancelValue: 'later',
       enterValue: 'install',
@@ -708,7 +708,7 @@ async function downloadAndInstallPackage(
       title: installPrompt.title,
       message: installPrompt.message,
       detail: installPrompt.detail,
-      buttons: ['立即安装', '稍后'],
+      buttons: ['Instalar agora', 'Agora não'],
       defaultId: 0,
       cancelId: 1,
     },
@@ -841,13 +841,13 @@ async function fetchReleaseLatestYaml(version: string): Promise<LatestMetadata |
 export async function rollbackShellUpdate(win: BrowserWindow | null = null): Promise<void> {
   if (process.platform !== 'win32') return
   if (process.env.DSH_APP_DEV === '1') {
-    await noticeInFrame(win, 'info', APP_NAME, '开发模式下不支持回滚应用版本（当前运行的是未打包构建）。')
+    await noticeInFrame(win, 'info', APP_NAME, 'Não é possível reverter a versão do aplicativo no modo de desenvolvimento (a build em execução não é empacotada).')
     return
   }
   if (busy) {
     // Shares the check guard with checkShellUpdateWin32 so a download and a
     // rollback can never interleave.
-    showUpdateToast(win, '正在检查应用更新，请稍候…', 'progress', 3_000)
+    showUpdateToast(win, 'Verificando atualização do aplicativo, aguarde…', 'progress', 3_000)
     return
   }
   busy = true
@@ -858,40 +858,40 @@ export async function rollbackShellUpdate(win: BrowserWindow | null = null): Pro
     // len-2 is the state before it — where a rollback lands.
     const previous = history.length >= 2 ? history[history.length - 2].version : null
     if (previous === null || previous === current || !isSafeVersion(previous)) {
-      await noticeInFrame(win, 'info', APP_NAME, '没有可回滚的历史版本。')
+      await noticeInFrame(win, 'info', APP_NAME, 'Não há versão anterior para reverter.')
       return
     }
-    showUpdateToast(win, `正在获取 ${APP_NAME} ${previous} 的安装包信息…`, 'progress', undefined)
+    showUpdateToast(win, `Obtendo informações do instalador do ${APP_NAME} ${previous}…`, 'progress', undefined)
     const meta = await fetchReleaseLatestYaml(previous)
     clearKernelProgress(win)
     if (!meta) {
-      await noticeInFrame(win, 'error', APP_NAME, `无法获取 ${APP_NAME} ${previous} 的更新元数据，请检查网络后重试。${MANUAL_DOWNLOAD_HINT}`)
+      await noticeInFrame(win, 'error', APP_NAME, `Não foi possível obter os metadados de atualização do ${APP_NAME} ${previous}. Verifique a rede e tente novamente. ${MANUAL_DOWNLOAD_HINT}`)
       return
     }
     const yaml = meta.yaml
     const asset = pickAsset(yaml.files, process.arch)
     if (!asset || !/^[\w.~-]+\.exe$/.test(asset.url)) {
-      await noticeInFrame(win, 'error', APP_NAME, `未找到 ${APP_NAME} ${previous} 适用于当前系统的安装包。`)
+      await noticeInFrame(win, 'error', APP_NAME, `Nenhum instalador do ${APP_NAME} ${previous} compatível com o sistema atual foi encontrado.`)
       return
     }
     const proceed = await confirmInFrame(
       {
-        title: `${APP_NAME} 回滚到上一版本`,
-        message: `将把 ${APP_NAME} 从 v${current} 回滚到 v${previous}。`,
-        detail: '将下载该版本的安装包并打开安装向导，完成后应用会重新启动。',
+        title: `${APP_NAME} — reverter para a versão anterior`,
+        message: `O ${APP_NAME} será revertido de v${current} para v${previous}.`,
+        detail: 'O instalador desta versão será baixado e o assistente de instalação será aberto; o aplicativo será reiniciado ao concluir.',
         buttons: [
-          { label: '取消', value: 'cancel' },
-          { label: '确认回滚', value: 'rollback', primary: true },
+          { label: 'Cancelar', value: 'cancel' },
+          { label: 'Confirmar reversão', value: 'rollback', primary: true },
         ],
         cancelValue: 'cancel',
         enterValue: 'rollback',
       },
       {
         type: 'question',
-        title: `${APP_NAME} 回滚到上一版本`,
-        message: `将把 ${APP_NAME} 从 v${current} 回滚到 v${previous}。`,
-        detail: '将下载该版本的安装包并打开安装向导，完成后应用会重新启动。',
-        buttons: ['确认回滚', '取消'],
+        title: `${APP_NAME} — reverter para a versão anterior`,
+        message: `O ${APP_NAME} será revertido de v${current} para v${previous}.`,
+        detail: 'O instalador desta versão será baixado e o assistente de instalação será aberto; o aplicativo será reiniciado ao concluir.',
+        buttons: ['Confirmar reversão', 'Cancelar'],
         defaultId: 0,
         cancelId: 1,
       },
@@ -904,14 +904,14 @@ export async function rollbackShellUpdate(win: BrowserWindow | null = null): Pro
       asset,
       releaseAssetCandidates(UPDATER_OWNER, UPDATER_REPO, previous, asset.url, meta.source),
       {
-        title: `${APP_NAME} 回滚就绪`,
-        message: `将关闭当前应用并安装 ${APP_NAME} ${previous}（回滚到上一版本）。`,
-        detail: '按向导完成安装后，应用会重新启动。安装包将在安装完成后自动删除。',
+        title: `${APP_NAME} — reversão pronta`,
+        message: `O aplicativo atual será fechado e o ${APP_NAME} ${previous} será instalado (reversão para a versão anterior).`,
+        detail: 'Depois de concluir a instalação pelo assistente, o aplicativo será reiniciado. O instalador será removido automaticamente após a conclusão.',
       },
     )
   } catch (err) {
     clearKernelProgress(win)
-    await noticeInFrame(win, 'error', APP_NAME, `回滚失败：${(err as Error).message}`)
+    await noticeInFrame(win, 'error', APP_NAME, `Falha na reversão: ${(err as Error).message}`)
   } finally {
     busy = false
   }
@@ -925,20 +925,20 @@ export async function rollbackShellUpdate(win: BrowserWindow | null = null): Pro
  */
 async function checkShellUpdateDev(win: BrowserWindow | null): Promise<void> {
   try {
-    showUpdateToast(win, '正在检查应用更新…', 'progress', undefined)
+    showUpdateToast(win, 'Verificando atualização do aplicativo…', 'progress', undefined)
     const meta = await fetchAndParseLatest()
-    if (!meta) throw new Error(`无法获取更新元数据（latest.yml）或格式无法解析。${MANUAL_DOWNLOAD_HINT}`)
+    if (!meta) throw new Error(`Não foi possível obter os metadados de atualização (latest.yml) ou o formato é inválido. ${MANUAL_DOWNLOAD_HINT}`)
     const yaml = meta.yaml
-    if (!isSafeVersion(yaml.version)) throw new Error('更新元数据版本格式异常')
+    if (!isSafeVersion(yaml.version)) throw new Error('Formato de versão inválido nos metadados de atualização')
     const current = app.getVersion()
     const newer = isNewerThan(yaml.version, current)
     clearKernelProgress(win)
     await noticeInFrame(win, 'info', APP_NAME, newer
-      ? `开发模式下不支持自动更新应用（当前运行的是未打包构建）。\n检测到新版本：v${current} → v${yaml.version}，请从正式安装的副本更新。`
-      : `开发模式下不支持自动更新应用（当前运行的是未打包构建）。\n当前版本 v${current}，远端为同一版本。`)
+      ? `O modo de desenvolvimento não suporta atualização automática do aplicativo (a build em execução não é empacotada).\nNova versão detectada: v${current} → v${yaml.version}. Atualize a partir de uma instalação oficial.`
+      : `O modo de desenvolvimento não suporta atualização automática do aplicativo (a build em execução não é empacotada).\nVersão atual v${current}; a remota é a mesma.`)
   } catch (err) {
     clearKernelProgress(win)
-    void noticeInFrame(win, 'info', APP_NAME, `开发模式下不支持自动更新应用，且远端版本检查失败：${(err as Error).message}`)
+    void noticeInFrame(win, 'info', APP_NAME, `O modo de desenvolvimento não suporta atualização automática do aplicativo e a verificação remota falhou: ${(err as Error).message}`)
   }
 }
 
@@ -1020,5 +1020,5 @@ export async function consumeUpdaterInstallResult(win: BrowserWindow | null = nu
   }
   // The wizard was cancelled or failed: still on the old version.
   console.log(`[shell-updater] update to ${target} did not complete (running ${current})`)
-  void showToastWhenLoaded(win, `上次应用更新未完成（当前仍为 v${current}），可从托盘「检查应用更新」重试`, 'error', 8_000)
+  void showToastWhenLoaded(win, `A última atualização do aplicativo não foi concluída (você ainda está na v${current}). Tente novamente em "Verificar atualização do aplicativo" no menu da bandeja`, 'error', 8_000)
 }

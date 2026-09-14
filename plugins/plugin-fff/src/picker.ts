@@ -94,8 +94,8 @@ export class PickerManager {
     try {
       key = await realpath(cwd)
     } catch {
-      if (cwd === undefined || cwd === '') return { ok: false, error: '没有可搜索的工作区，请先在工作区中打开会话' }
-      return { ok: false, error: '工作区目录不存在或已被删除' }
+      if (cwd === undefined || cwd === '') return { ok: false, error: 'Não há workspace pesquisável; abra uma sessão no workspace primeiro' }
+      return { ok: false, error: 'O diretório do workspace não existe ou foi removido' }
     }
 
     const existing = this.entries.get(key)
@@ -177,14 +177,14 @@ export class PickerManager {
       if (!waited.ok) throw new Error(`scan failed (${String(waited.error)})`)
       if (!waited.value) {
         finder.destroy()
-        throw new Error('索引尚未就绪，请稍后重试')
+        throw new Error('O índice ainda não está pronto; tente novamente mais tarde')
       }
     } catch (error) {
       // A stunned native component surfaces as a create-time failure. Keep the
       // detail transient (log it) but the user-facing message stable.
       this.log.warn(`fff picker create failed for ${key}: ${error instanceof Error ? error.message : String(error)}`)
       finder?.destroy()
-      throw new Error('文件搜索引擎初始化失败（原生组件未就绪），请重试或重启应用')
+      throw new Error('A inicialização do mecanismo de busca de arquivos falhou (componente nativo não pronto). Tente novamente ou reinicie o aplicativo')
     }
 
     const entry: Entry = { finder, key, lastUsed: Date.now(), active: 0 }

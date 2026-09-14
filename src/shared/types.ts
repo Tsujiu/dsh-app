@@ -16,7 +16,7 @@ export type KernelPhase =
 
 export interface KernelStatusPayload {
   phase: KernelPhase
-  /** 用户可见文案（zh-CN，由调用方直接展示）。 */
+  /** User-visible copy (pt-BR, shown directly by the caller). */
   message: string
   /** 0..1 download/extract progress, or null when indeterminate. */
   progress: number | null

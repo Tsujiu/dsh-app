@@ -35,28 +35,28 @@ export interface CompatFieldMeta {
  * YAML stays the answer for it (unknown keys survive edits untouched).
  */
 export const COMPAT_FIELDS: readonly CompatFieldMeta[] = [
-  { key: 'supportsStore', label: '支持 store 字段', kind: 'boolean' },
-  { key: 'supportsDeveloperRole', label: '支持 developer 角色', kind: 'boolean' },
-  { key: 'supportsReasoningEffort', label: '支持 reasoning_effort 参数', kind: 'boolean' },
-  { key: 'supportsUsageInStreaming', label: '流式返回用量', kind: 'boolean' },
-  { key: 'maxTokensField', label: '输出上限字段名', kind: { enum: ['max_completion_tokens', 'max_tokens'] } },
-  { key: 'requiresToolResultName', label: '工具结果需名称', kind: 'boolean' },
-  { key: 'requiresAssistantAfterToolResult', label: '工具结果后需 assistant', kind: 'boolean' },
-  { key: 'requiresThinkingAsText', label: '思考以文本输出', kind: 'boolean' },
-  { key: 'requiresReasoningContentOnAssistantMessages', label: 'assistant 消息需 reasoning', kind: 'boolean' },
-  { key: 'thinkingFormat', label: '思考分发格式', kind: { enum: [
+  { key: 'supportsStore', label: 'Suporta campo store', kind: 'boolean' },
+  { key: 'supportsDeveloperRole', label: 'Suporta papel developer', kind: 'boolean' },
+  { key: 'supportsReasoningEffort', label: 'Suporta parâmetro reasoning_effort', kind: 'boolean' },
+  { key: 'supportsUsageInStreaming', label: 'Uso em streaming', kind: 'boolean' },
+  { key: 'maxTokensField', label: 'Nome do campo de limite de saída', kind: { enum: ['max_completion_tokens', 'max_tokens'] } },
+  { key: 'requiresToolResultName', label: 'Resultado de ferramenta exige nome', kind: 'boolean' },
+  { key: 'requiresAssistantAfterToolResult', label: 'Exige assistant após resultado de ferramenta', kind: 'boolean' },
+  { key: 'requiresThinkingAsText', label: 'Raciocínio como texto', kind: 'boolean' },
+  { key: 'requiresReasoningContentOnAssistantMessages', label: 'Mensagens assistant exigem reasoning', kind: 'boolean' },
+  { key: 'thinkingFormat', label: 'Formato de distribuição do raciocínio', kind: { enum: [
     'openai', 'deepseek', 'openrouter', 'together', 'zai', 'qwen',
     'chat-template', 'qwen-chat-template', 'string-thinking', 'ant-ling',
   ] } },
-  { key: 'supportsStrictMode', label: '支持 strict 模式', kind: 'boolean' },
-  { key: 'cacheControlFormat', label: '缓存标记格式', kind: { enum: ['anthropic'] } },
-  { key: 'supportsLongCacheRetention', label: '支持长缓存保留', kind: 'boolean' },
-  { key: 'supportsEagerToolInputStreaming', label: '工具输入急速流式', kind: 'boolean' },
-  { key: 'supportsCacheControlOnTools', label: '工具支持缓存标记', kind: 'boolean' },
-  { key: 'supportsTemperature', label: '支持 temperature', kind: 'boolean' },
-  { key: 'forceAdaptiveThinking', label: '强制自适应思考', kind: 'boolean' },
-  { key: 'allowEmptySignature', label: '允许空签名', kind: 'boolean' },
-  { key: 'supportsStrictTools', label: '支持 strict 工具', kind: 'boolean' },
+  { key: 'supportsStrictMode', label: 'Suporta modo strict', kind: 'boolean' },
+  { key: 'cacheControlFormat', label: 'Formato de marcador de cache', kind: { enum: ['anthropic'] } },
+  { key: 'supportsLongCacheRetention', label: 'Suporta retenção de cache longa', kind: 'boolean' },
+  { key: 'supportsEagerToolInputStreaming', label: 'Streaming rápido de entrada de ferramentas', kind: 'boolean' },
+  { key: 'supportsCacheControlOnTools', label: 'Ferramentas suportam marcador de cache', kind: 'boolean' },
+  { key: 'supportsTemperature', label: 'Suporta temperature', kind: 'boolean' },
+  { key: 'forceAdaptiveThinking', label: 'Forçar raciocínio adaptativo', kind: 'boolean' },
+  { key: 'allowEmptySignature', label: 'Permitir assinatura vazia', kind: 'boolean' },
+  { key: 'supportsStrictTools', label: 'Suporta ferramentas strict', kind: 'boolean' },
 ]
 
 /** The compat fields a settings value may carry, keyed for lookup. */
@@ -149,7 +149,7 @@ export function reasoningCompatFill(api: string | undefined): Record<string, unk
 export const COMPAT_PRESETS: readonly { id: string; label: string; value: Record<string, unknown> }[] = [
   {
     id: 'deepseek-gateway',
-    label: 'DeepSeek 网关家族',
+    label: 'Família de gateway DeepSeek',
     value: {
       supportsStore: false,
       supportsDeveloperRole: false,
@@ -349,26 +349,26 @@ export function parseRetryPolicy(draft: RetryPolicyDraft): RetryPolicyParse {
   if (draft.mode === 'normal' && maxRetries !== '') {
     const parsed = Number(maxRetries)
     if (!Number.isSafeInteger(parsed) || parsed < 0) {
-      return { ok: false, error: '最大重试次数必须是非负整数' }
+      return { ok: false, error: 'O número máximo de tentativas deve ser um inteiro não negativo' }
     }
   }
   const initialDelayMs = parsePositiveFinite(draft.initialDelayMs)
-  if (initialDelayMs === 'bad') return { ok: false, error: '首次延迟必须是正数（毫秒）' }
+  if (initialDelayMs === 'bad') return { ok: false, error: 'O atraso inicial deve ser um número positivo (milissegundos)' }
   const maxDelayMs = parsePositiveFinite(draft.maxDelayMs)
-  if (maxDelayMs === 'bad') return { ok: false, error: '延迟上限必须是正数（毫秒）' }
+  if (maxDelayMs === 'bad') return { ok: false, error: 'O atraso máximo deve ser um número positivo (milissegundos)' }
   const jitterRatio = (() => {
     const trimmed = draft.jitterRatio.trim()
     if (trimmed === '') return undefined
     const parsed = Number(trimmed)
     return Number.isFinite(parsed) ? parsed : 'bad'
   })()
-  if (jitterRatio === 'bad') return { ok: false, error: '抖动比例必须是 0 到 1 之间的数字' }
+  if (jitterRatio === 'bad') return { ok: false, error: 'A proporção de jitter deve ser um número entre 0 e 1' }
   if (jitterRatio !== undefined && (jitterRatio < 0 || jitterRatio > 1)) {
-    return { ok: false, error: '抖动比例必须在 0 到 1 之间' }
+    return { ok: false, error: 'A proporção de jitter deve estar entre 0 e 1' }
   }
-  for (const [name, value] of [['首次延迟', initialDelayMs], ['延迟上限', maxDelayMs]] as const) {
+  for (const [name, value] of [['atraso inicial', initialDelayMs], ['atraso máximo', maxDelayMs]] as const) {
     if (typeof value === 'number' && value > MAX_TIMER_DELAY_MS) {
-      return { ok: false, error: `${name}不能超过 ${String(MAX_TIMER_DELAY_MS)} 毫秒` }
+      return { ok: false, error: `${name} não pode exceder ${String(MAX_TIMER_DELAY_MS)} milissegundos` }
     }
   }
   // Cross-check against effective values (a blank field falls back to the
@@ -376,7 +376,7 @@ export function parseRetryPolicy(draft: RetryPolicyDraft): RetryPolicyParse {
   const effectiveInitial = initialDelayMs ?? RETRY_POLICY_DEFAULTS.initialDelayMs
   const effectiveMax = maxDelayMs ?? RETRY_POLICY_DEFAULTS.maxDelayMs
   if (effectiveInitial > effectiveMax) {
-    return { ok: false, error: '首次延迟不能大于延迟上限（留空时按默认 500 / 10000 计算）' }
+    return { ok: false, error: 'O atraso inicial não pode ser maior que o atraso máximo (em branco, usa o padrão 500 / 10000)' }
   }
   const backoff: Record<string, number> = {}
   if (initialDelayMs !== undefined) backoff.initialDelayMs = initialDelayMs
@@ -395,7 +395,7 @@ export function parseRetryPolicy(draft: RetryPolicyDraft): RetryPolicyParse {
  * When `api` is named, model-level compat switches that protocol does not
  * take are refused here so the write never reaches the adapter's English
  * resolve-time error.
- * @returns the failure text (zh-CN), or undefined when the row is writable.
+ * @returns the failure text (pt-BR), or undefined when the row is writable.
  */
 export function modelRowFailure(
   row: ModelDraft,
@@ -403,44 +403,44 @@ export function modelRowFailure(
   api?: string,
 ): string | undefined {
   const id = typeof row.id === 'string' ? row.id.trim() : ''
-  if (id === '') return '模型 ID 不能为空'
-  if (knownIds.has(id)) return `模型 ID 重复：${id}`
+  if (id === '') return 'O ID do modelo não pode ser vazio'
+  if (knownIds.has(id)) return `ID de modelo duplicado: ${id}`
   for (const field of ['contextWindow', 'maxTokens'] as const) {
     const value = row[field]
     if (value === undefined) continue
     if (typeof value !== 'number' || !Number.isSafeInteger(value) || value <= 0) {
-      return `${id} 的 ${field === 'contextWindow' ? '上下文窗口' : '输出上限'}必须是正整数`
+      return `${id}: o ${field === 'contextWindow' ? 'contexto' : 'limite de saída'} deve ser um inteiro positivo`
     }
   }
   const reasoning = row.reasoningEfforts
   if (reasoning !== undefined && reasoning !== false) {
     if (typeof reasoning !== 'object' || reasoning === null || Array.isArray(reasoning)) {
-      return `${id} 的推理等级格式不正确`
+      return `${id}: formato de níveis de raciocínio inválido`
     }
     const levels = Object.keys(reasoning as Record<string, unknown>)
     if (levels.length === 0) {
-      return `${id} 的推理等级为空：至少声明一个档位（如 high），或改为“禁用推理”`
+      return `${id}: níveis de raciocínio vazios — declare ao menos um nível (ex.: high) ou use "desativar raciocínio"`
     }
     for (const level of levels) {
       if (!(REASONING_LEVELS as readonly string[]).includes(level)) {
-        return `${id} 的推理级别未知：${level}`
+        return `${id}: nível de raciocínio desconhecido: ${level}`
       }
     }
     // The adapter refuses a dict that offers no level beyond `off` — mirror
     // that rule here so the refusal lands in this form, not in a rejected
     // write after the fact.
     if (levels.every(level => level === 'off')) {
-      return `${id} 的推理等级只声明了 off：声明支持推理的模型至少要有一个实际档位（如 low/high），或改为“禁用推理”`
+      return `${id}: os níveis de raciocínio declaram apenas off — um modelo que declara suporte a raciocínio precisa de ao menos um nível real (ex.: low/high), ou use "desativar raciocínio"`
     }
   }
   const input = row.input
   if (input !== undefined) {
     if (!Array.isArray(input) || input.some(m => !(MODALITIES as readonly string[]).includes(m as string))) {
-      return `${id} 的输入模态不正确`
+      return `${id}: modalidade de entrada inválida`
     }
   }
   const failingCompat = compatFailure(row.compat)
-  if (failingCompat !== undefined) return `${id} 的兼容开关 ${failingCompat} 取值不合法`
+  if (failingCompat !== undefined) return `${id}: valor inválido para o switch de compatibilidade ${failingCompat}`
   if (api !== undefined && api !== '' && typeof row.compat === 'object'
     && row.compat !== null && !Array.isArray(row.compat)) {
     const offered = new Set(compatFieldsForApi(api).map(field => field.key))
@@ -449,7 +449,7 @@ export function modelRowFailure(
     // write the adapter would refuse — catch them here.
     for (const key of Object.keys(row.compat as Record<string, unknown>)) {
       if (COMPAT_BY_KEY.has(key) && !offered.has(key)) {
-        return `${id} 的兼容开关 ${key} 不适用于 ${api} 协议`
+        return `${id}: o switch de compatibilidade ${key} não se aplica ao protocolo ${api}`
       }
     }
   }
@@ -498,16 +498,16 @@ export function parseHeaders(rows: readonly HeaderRow[]): HeadersParse {
     const name = row.name.trim()
     if (name === '') continue
     const lower = name.toLowerCase()
-    if (seen.has(lower)) return { ok: false, error: `请求头名称重复：${name}` }
+    if (seen.has(lower)) return { ok: false, error: `Nome de cabeçalho duplicado: ${name}` }
     seen.add(lower)
     if (/[\r\n\0]/.test(row.value)) {
-      return { ok: false, error: `${name} 的值不能包含换行` }
+      return { ok: false, error: `O valor de ${name} não pode conter quebras de linha` }
     }
     try {
       // Same gate the adapter's profile resolver uses.
       new Headers([[name, row.value]])
     } catch {
-      return { ok: false, error: `${name} 不是合法的 HTTP 请求头名称` }
+      return { ok: false, error: `${name} não é um nome de cabeçalho HTTP válido` }
     }
     value[name] = row.value
   }

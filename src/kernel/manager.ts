@@ -93,7 +93,7 @@ export class KernelManager {
 
   private async initDev(): Promise<CurrentKernel> {
     const checkout = this.opts.devCheckoutDir
-    if (!checkout) throw new Error('开发模式需要配置 devCheckoutDir（本地 deepseek-harness 源码目录）')
+    if (!checkout) throw new Error('O modo de desenvolvimento requer devCheckoutDir (diretório local do código-fonte do deepseek-harness)')
     const manifest = await readDevManifest(checkout, this.opts.platform, this.opts.arch)
     this.current = {
       active: 'dev',
@@ -113,7 +113,7 @@ export class KernelManager {
 
   /** Absolute path of the active kernel directory ('dev' → the checkout). */
   getCurrentDir(): string {
-    if (!this.current) throw new Error('内核尚未初始化')
+    if (!this.current) throw new Error('O kernel ainda não foi inicializado')
     if (this.opts.source === 'dev') return this.opts.devCheckoutDir!
     return this.kernelDir(this.current.active)
   }
@@ -146,7 +146,7 @@ export class KernelManager {
       if (!this.current) {
         return { available: false, current: null, latest: null, channel: this.opts.channel, reason: 'no kernel installed' }
       }
-      this.status({ phase: 'checking', message: '正在检查内核更新…', progress: null })
+      this.status({ phase: 'checking', message: 'Verificando atualização do kernel…', progress: null })
       // A prerelease kernel lives on its own dist-tag: `rc` builds on `next`,
       // `alpha` builds on `alpha`. Upstream moves a version line across tags
       // as it matures (alpha → rc → stable), so a single-tag query would
@@ -250,8 +250,8 @@ export class KernelManager {
     } finally {
       // Terminal status: the in-window card never lingers after a check, on
       // any return path (up to date / dev mode / artifact pending / throw).
-      // `ready`/`就绪` renders no card — it only clears the one above.
-      this.status({ phase: 'ready', message: '就绪', progress: null })
+      // `ready`/`Pronto` renders no card — it only clears the one above.
+      this.status({ phase: 'ready', message: 'Pronto', progress: null })
     }
   }
 
@@ -268,15 +268,15 @@ export class KernelManager {
    */
   async installLatest(reason: string): Promise<CurrentKernel> {
     if (this.opts.source === 'dev') return this.initDev()
-    this.status({ phase: 'checking', message: reason === 'installing' ? '正在准备首次安装…' : '正在检查更新…', progress: null })
+    this.status({ phase: 'checking', message: reason === 'installing' ? 'Preparando a primeira instalação…' : 'Verificando atualizações…', progress: null })
     const info = await fetchRegistryInfo(this.opts.channel)
-    if (!info) throw new Error('无法连接 npm 注册表以解析 dsh 版本')
+    if (!info) throw new Error('Não foi possível conectar ao registro npm para resolver a versão do dsh')
     return this.installVersion(info.version)
   }
 
   async installVersion(version: string): Promise<CurrentKernel> {
     if (this.opts.source === 'dev') return this.initDev()
-    if (this.installing) throw new Error('内核安装正在进行中，请稍候')
+    if (this.installing) throw new Error('Uma instalação do kernel está em andamento; aguarde')
     this.installing = true
     try {
       return await this.installVersionInner(version)
@@ -288,9 +288,9 @@ export class KernelManager {
   private async installVersionInner(version: string): Promise<CurrentKernel> {
     const resolver = this.makeResolver()
     const artifact = await resolver.fetchArtifact(version)
-    if (!artifact) throw new Error(`未找到 dsh ${version} 在 ${this.opts.platform}-${this.opts.arch} 上的运行时产物`)
+    if (!artifact) throw new Error(`Nenhum artefato de runtime do dsh ${version} para ${this.opts.platform}-${this.opts.arch} foi encontrado`)
     if (artifact.manifest.platform !== this.opts.platform || artifact.manifest.arch !== this.opts.arch) {
-      throw new Error(`产物平台不匹配：${artifact.manifest.platform}-${artifact.manifest.arch} 与 ${this.opts.platform}-${this.opts.arch}`)
+      throw new Error(`Plataforma do artefato não corresponde: ${artifact.manifest.platform}-${artifact.manifest.arch} versus ${this.opts.platform}-${this.opts.arch}`)
     }
 
     await fs.mkdir(path.join(this.root, STAGING_DIR), { recursive: true })
@@ -299,7 +299,7 @@ export class KernelManager {
     // 1. Download from the first candidate that both transfers and verifies.
     //    The trusted sha512 comes from the release metadata (official host
     //    preferred), so a mirror can never substitute content.
-    this.status({ phase: 'downloading', message: `正在下载 dsh ${version}…`, progress: 0 })
+    this.status({ phase: 'downloading', message: `Baixando dsh ${version}…`, progress: 0 })
     let downloadedFrom: string | null = null
     let lastError: Error | null = null
     for (const candidate of artifact.candidates) {
@@ -307,7 +307,7 @@ export class KernelManager {
         await this.download(candidate, tarball)
         const actual = await sha512File(tarball)
         if (!verifyIntegrity(artifact.sha512, actual)) {
-          throw new Error(`完整性校验失败（期望 ${artifact.sha512.slice(0, 16)}…，实际 ${actual.slice(0, 16)}…）`)
+          throw new Error(`Falha na verificação de integridade (esperado ${artifact.sha512.slice(0, 16)}…, obtido ${actual.slice(0, 16)}…)`)
         }
         downloadedFrom = candidate
         break
@@ -318,7 +318,7 @@ export class KernelManager {
       }
     }
     if (!downloadedFrom) {
-      throw new Error(`dsh ${version} 下载失败（已尝试 ${artifact.candidates.length} 个源）：${lastError?.message ?? '未知错误'}`)
+      throw new Error(`Falha ao baixar o dsh ${version} (tentadas ${artifact.candidates.length} fontes): ${lastError?.message ?? 'erro desconhecido'}`)
     }
 
     // 2. (Verified above.) Extract, sanity-check, and activate.
@@ -341,7 +341,7 @@ export class KernelManager {
     const extractDir = path.join(this.root, STAGING_DIR, 'extract')
     await fs.rm(extractDir, { recursive: true, force: true })
     await fs.mkdir(extractDir, { recursive: true })
-    this.status({ phase: 'extracting', message: '正在解压运行时…', progress: null })
+    this.status({ phase: 'extracting', message: 'Extraindo o runtime…', progress: null })
     // One listing pass buys a real denominator: extracting ~10k small files
     // takes minutes on Windows, and an indeterminate spinner over that span
     // reads as a hang. Falls back to indeterminate when listing fails.
@@ -362,16 +362,16 @@ export class KernelManager {
         if (total <= 0) return
         this.throttledStatus(throttle, {
           phase: 'extracting',
-          message: `正在解压运行时…（${extracted}/${total}）`,
+          message: `Extraindo o runtime… (${extracted}/${total})`,
           progress: Math.min(1, extracted / total),
         }, extracted === total)
       },
     })
     const inner = path.join(extractDir, 'runtime')
     const innerManifest = await readRuntimeManifest(inner)
-    if (!innerManifest) throw new Error('运行时产物缺少 manifest.json')
+    if (!innerManifest) throw new Error('O artefato de runtime não contém manifest.json')
     if (innerManifest.platform !== this.opts.platform || innerManifest.arch !== this.opts.arch) {
-      throw new Error(`产物平台不匹配：${innerManifest.platform}-${innerManifest.arch} 与 ${this.opts.platform}-${this.opts.arch}`)
+      throw new Error(`Plataforma do artefato não corresponde: ${innerManifest.platform}-${innerManifest.arch} versus ${this.opts.platform}-${this.opts.arch}`)
     }
 
     // 3. Move into a versioned, immutable directory.
@@ -383,7 +383,7 @@ export class KernelManager {
     // 4. Activate atomically, keeping the previous version for rollback.
     //    Same-name re-activation (bundled content drift) must not point
     //    `previous` at itself — nothing to roll back to beyond the new dir.
-    this.status({ phase: 'installing', message: '正在激活运行时…', progress: null })
+    this.status({ phase: 'installing', message: 'Ativando o runtime…', progress: null })
     const previous = this.current && this.current.active !== versionDir ? this.current.active : null
     const next: CurrentKernel = {
       active: versionDir,
@@ -413,7 +413,7 @@ export class KernelManager {
    */
   async installFromLocalTarball(tarballPath: string, sha512Path: string): Promise<CurrentKernel> {
     if (this.opts.source === 'dev') return this.initDev()
-    if (this.installing) throw new Error('内核安装正在进行中，请稍候')
+    if (this.installing) throw new Error('Uma instalação do kernel está em andamento; aguarde')
     this.installing = true
     try {
       return await this.installFromLocalTarballInner(tarballPath, sha512Path)
@@ -430,11 +430,11 @@ export class KernelManager {
     await fs.copyFile(tarballPath, tarball)
 
     // Verify integrity against the bundled sidecar.
-    this.status({ phase: 'extracting', message: '正在校验内置运行时…', progress: null })
+    this.status({ phase: 'extracting', message: 'Validando o runtime integrado…', progress: null })
     const expected = (await fs.readFile(sha512Path, 'utf8')).trim().toLowerCase()
     const actual = await sha512File(tarball)
     if (!verifyIntegrity(expected, actual)) {
-      throw new Error(`内置运行时完整性校验失败（期望 ${expected.slice(0, 16)}…，实际 ${actual.slice(0, 16)}…）`)
+      throw new Error(`Falha na validação de integridade do runtime integrado (esperado ${expected.slice(0, 16)}…, obtido ${actual.slice(0, 16)}…)`)
     }
     this.log(`bundled tarball verified: ${path.basename(tarballPath)}`)
     const next = await this.activateTarball(tarball)
@@ -458,13 +458,13 @@ export class KernelManager {
 
   private makeResolver(): GitHubArtifactResolver {
     const { artifactOwner, artifactRepo } = this.opts
-    if (!artifactOwner || !artifactRepo) throw new Error('制品源需要配置 artifactOwner/artifactRepo（GitHub 仓库）')
+    if (!artifactOwner || !artifactRepo) throw new Error('A fonte de artefatos requer artifactOwner/artifactRepo (repositório GitHub)')
     return new GitHubArtifactResolver(artifactOwner, artifactRepo, this.opts.platform, this.opts.arch)
   }
 
   private async download(url: string, dest: string): Promise<void> {
     const res = await fetch(url, { signal: AbortSignal.timeout(300_000) })
-    if (!res.ok || !res.body) throw new Error(`下载失败：HTTP ${res.status}`)
+    if (!res.ok || !res.body) throw new Error(`Falha no download: HTTP ${res.status}`)
     const total = Number(res.headers.get('content-length') ?? 0)
     const body = Readable.fromWeb(res.body as never)
     const out = await fs.open(dest, 'w')
@@ -472,7 +472,7 @@ export class KernelManager {
     const throttle = { lastEmit: 0 }
     // F20: cap a single runtime download (typical ~160 MB) at 1 GiB.
     const MAX_DOWNLOAD_BYTES = 1024 * 1024 * 1024
-    if (total > MAX_DOWNLOAD_BYTES) throw new Error(`下载失败：安装包过大（${total} 字节）`)
+    if (total > MAX_DOWNLOAD_BYTES) throw new Error(`Falha no download: pacote grande demais (${total} bytes)`)
     try {
       for await (const chunk of body) {
         // TODO: wire download cancellation from the shell (tray/close) when a cancel UI exists.
@@ -480,8 +480,8 @@ export class KernelManager {
         await out.write(chunk)
         // Throttled (~4/s): each status re-renders the in-window card and tray tooltip.
         if (total > 0) {
-          if (received > MAX_DOWNLOAD_BYTES) throw new Error(`下载失败：安装包过大（已接收 ${received} 字节）`)
-          this.throttledStatus(throttle, { phase: 'downloading', message: '正在下载 dsh…', progress: Math.min(1, received / total) }, received === total)
+          if (received > MAX_DOWNLOAD_BYTES) throw new Error(`Falha no download: pacote grande demais (${received} bytes recebidos)`)
+          this.throttledStatus(throttle, { phase: 'downloading', message: 'Baixando dsh…', progress: Math.min(1, received / total) }, received === total)
         }
       }
     } finally {
@@ -499,7 +499,7 @@ export class KernelManager {
     if (!this.current?.previous) return null
     const previousDir = this.current.previous
     const manifest = await readRuntimeManifest(this.kernelDir(previousDir))
-    if (!manifest) throw new Error(`回滚失败：上一个内核 ${previousDir} 缺少 manifest.json`)
+    if (!manifest) throw new Error(`Falha ao reverter: o kernel anterior ${previousDir} não contém manifest.json`)
     const rollbackTo: CurrentKernel = {
       active: previousDir,
       previous: null,
@@ -508,7 +508,7 @@ export class KernelManager {
     }
     await saveCurrentKernel(this.root, rollbackTo)
     this.current = rollbackTo
-    this.status({ phase: 'rollback', message: `已回滚到 ${previousDir}`, progress: null })
+    this.status({ phase: 'rollback', message: `Revertido para ${previousDir}`, progress: null })
     this.log(`rolled back to ${previousDir}`)
     return rollbackTo
   }

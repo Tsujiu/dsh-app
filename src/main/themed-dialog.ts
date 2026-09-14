@@ -65,7 +65,7 @@ export async function noticeThemedDialog(
   await promptThemedDialog(
     win,
     script,
-    { type, title, message, buttons: ['确定'], defaultId: 0, cancelId: 0, noLink: true },
+    { type, title, message, buttons: ['OK'], defaultId: 0, cancelId: 0, noLink: true },
     () => undefined,
   )
 }

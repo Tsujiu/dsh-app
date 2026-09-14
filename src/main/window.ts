@@ -361,9 +361,9 @@ function installExportToast(win: BrowserWindow): void {
     if (!name.startsWith('dsh-session-') || !name.endsWith('.zip')) return
     item.once('done', (_e, state) => {
       const ok = state === 'completed'
-      const reason = state === 'cancelled' ? '已取消' : state === 'interrupted' ? '已中断' : state
-      const title = ok ? 'Session 导出完成' : 'Session 导出失败'
-      const detail = ok ? `已保存到：${item.getSavePath() || name}` : reason
+      const reason = state === 'cancelled' ? 'Cancelado' : state === 'interrupted' ? 'Interrompido' : state
+      const title = ok ? 'Exportação da sessão concluída' : 'Falha na exportação da sessão'
+      const detail = ok ? `Salvo em: ${item.getSavePath() || name}` : reason
       // Desktop: the download has settled, so the modal's "download started"
       // state is stale. Route through its own close button (React onClick),
       // not a synthetic Escape, so only the export dialog is affected.
@@ -441,8 +441,8 @@ export function showKernelProgress(win: BrowserWindow | null, status: KernelStat
   else activeKernelStatus = status
   if (!win || win.isDestroyed()) return
   // A plain boot "ready" is not an event worth a toast (the tray tooltip still
-  // reflects it); only update flows (e.g. "已激活 dsh X") show a success card.
-  if (status.phase === 'ready' && status.message === '就绪') {
+  // reflects it); only update flows (e.g. "dsh X ativado") show a success card.
+  if (status.phase === 'ready' && status.message === 'Pronto') {
     clearKernelProgress(win)
     return
   }
@@ -479,10 +479,11 @@ export function showUpdateToast(win: BrowserWindow | null, message: string, tone
 /**
  * Persistent "kernel update available" card for background checks (no toast,
  * no modal). Renders one button per installable option (primary line first)
- * plus 稍后; resolves with the chosen version, or 'later' once the user
- * clicks 稍后. Never auto-hides, so a background finding stays visible until
- * acted on. When the window is gone/unresponsive or the page doesn't answer,
- * it resolves 'later' (a pending rejection) rather than crashing the caller.
+ * plus "Agora não"; resolves with the chosen version, or 'later' once the user
+ * clicks "Agora não". Never auto-hides, so a background finding stays visible
+ * until acted on. When the window is gone/unresponsive or the page doesn't
+ * answer, it resolves 'later' (a pending rejection) rather than crashing the
+ * caller.
  */
 export async function showKernelUpdateCard(
   win: BrowserWindow | null,
