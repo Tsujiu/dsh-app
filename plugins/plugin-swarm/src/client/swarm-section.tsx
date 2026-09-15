@@ -20,14 +20,14 @@ interface FieldSpec {
 }
 
 const NUMERIC_FIELDS: readonly FieldSpec[] = [
-  { key: 'defaultConcurrency', label: '起始并发', hint: '批次开始时的并行子代理数' },
-  { key: 'maxConcurrency', label: '并发上限', hint: '自适应恢复的稳态上限；未指定并发时池子还会向上探测（最高 64）' },
-  { key: 'maxItems', label: '单批任务上限', hint: '一次 swarm 调用最多拆分的子任务数' },
-  { key: 'startStaggerMs', label: '启动间隔 (ms)', hint: '相邻子代理的启动间隔，平滑网关压力' },
-  { key: 'itemMaxRetries', label: '失败重试次数', hint: '子任务遇到限流/断流等瞬时错误时的自动重试次数' },
-  { key: 'itemRetryDelayMs', label: '重试退避 (ms)', hint: '首次重试的等待时间，每次翻倍' },
-  { key: 'perItemOutputLimit', label: '单任务结果截断', hint: '每个子任务回传结果的最大字符数' },
-  { key: 'tokenBudget', label: '批次 token 预算', hint: '0 为不限制；达到预算后停止启动新子任务' },
+  { key: 'defaultConcurrency', label: 'Concorrência inicial', hint: 'Número de subagentes paralelos no início do lote' },
+  { key: 'maxConcurrency', label: 'Limite de concorrência', hint: 'Limite estável da recuperação adaptativa; sem valor definido, o pool testa valores maiores (máximo 64)' },
+  { key: 'maxItems', label: 'Limite de tarefas por lote', hint: 'Número máximo de subtarefas em uma chamada swarm' },
+  { key: 'startStaggerMs', label: 'Intervalo de inicialização (ms)', hint: 'Intervalo entre subagentes adjacentes para suavizar a pressão no gateway' },
+  { key: 'itemMaxRetries', label: 'Tentativas após falha', hint: 'Tentativas automáticas após erros transitórios, como limitação de taxa ou queda de conexão' },
+  { key: 'itemRetryDelayMs', label: 'Retardo entre tentativas (ms)', hint: 'Tempo de espera da primeira tentativa, dobrado a cada vez' },
+  { key: 'perItemOutputLimit', label: 'Truncamento do resultado por tarefa', hint: 'Número máximo de caracteres retornados por cada subtarefa' },
+  { key: 'tokenBudget', label: 'Orçamento de tokens do lote', hint: '0 significa sem limite; ao atingir o orçamento, novas subtarefas deixam de ser iniciadas' },
 ]
 
 /** The host route's config payload (mirror of SwarmConfigResponse). */
@@ -110,14 +110,14 @@ export function SwarmSection(): ReactNode {
       }
       const value = Number(raw)
       if (!Number.isFinite(value)) {
-        setError(`「${field.label}」不是有效数字`)
+        setError(`"${field.label}" não é um número válido`)
         return
       }
       patch[field.key] = value
     }
     try {
       await post(patch)
-      setNotice('已保存，下一次并行任务调用即生效')
+      setNotice('Salvo; entrará em vigor na próxima tarefa paralela')
     } catch {
       // post() already surfaced the error banner.
     }
@@ -128,12 +128,12 @@ export function SwarmSection(): ReactNode {
     const patch: Record<string, null> = {}
     for (const key of Object.keys(config.overrides)) patch[key] = null
     if (Object.keys(patch).length === 0) {
-      setNotice('当前没有自定义项，全部为默认值')
+      setNotice('Não há itens personalizados; todos usam os valores padrão')
       return
     }
     try {
       await post(patch)
-      setNotice('已恢复默认值')
+      setNotice('Valores padrão restaurados')
     } catch {
       // post() already surfaced the error banner.
     }
@@ -144,7 +144,7 @@ export function SwarmSection(): ReactNode {
     const next = !(config.effective.enabled !== false)
     try {
       await post({ enabled: next })
-      setNotice(next ? '已设为启用，重启应用后生效' : '已设为禁用，重启应用后生效')
+      setNotice(next ? 'Definido como ativado; entrará em vigor após reiniciar o aplicativo' : 'Definido como desativado; entrará em vigor após reiniciar o aplicativo')
     } catch {
       // post() already surfaced the error banner.
     }
@@ -155,7 +155,7 @@ export function SwarmSection(): ReactNode {
     const next = !(config.effective.adaptive !== false)
     try {
       await post({ adaptive: next })
-      setNotice(next ? '已开启自适应调度，下一次调用即生效' : '已关闭自适应调度：并发将固定为起始值，下一次调用即生效')
+      setNotice(next ? 'Agendamento adaptativo ativado; entrará em vigor na próxima chamada' : 'Agendamento adaptativo desativado: a concorrência ficará fixa no valor inicial na próxima chamada')
     } catch {
       // post() already surfaced the error banner.
     }
@@ -166,10 +166,10 @@ export function SwarmSection(): ReactNode {
 
   return (
     <div className="dshs_section">
-      <p className="dshs_title">并行子代理（Swarm）</p>
+      <p className="dshs_title">Subagentes paralelos (Swarm)</p>
       <p className="dshs_hint">
-        将可并行的任务拆分为多个子代理同时执行。调度参数保存后对下一次调用即时生效；启用/禁用需重启应用。
-        自适应调度开启时，遇到限流会自动降速、恢复后缓慢爬升，并可能在稳定时向上探测网关余量（最高 64）。
+        Divida tarefas paralelizáveis entre vários subagentes executados simultaneamente. Os parâmetros de agendamento entram em vigor na próxima chamada; ativar ou desativar exige reiniciar o aplicativo.
+        Com o agendamento adaptativo ativado, a velocidade diminui automaticamente sob limitação de taxa, sobe lentamente após a recuperação e pode testar a capacidade disponível do gateway (máximo 64).
       </p>
 
       {error !== undefined ? <div className="dshs_banner" role="alert">{error}</div> : null}
@@ -177,15 +177,15 @@ export function SwarmSection(): ReactNode {
 
       <div className="dshs_toggleRow">
         <span className="dshs_toggleLabel">
-          启用并行子代理（{config === null ? '…' : enabled ? '已启用' : '已禁用'}）
-          <span className="dshs_toggleHint">禁用后 swarm 工具与 /swarm 命令不再注册，重启应用后生效</span>
+          Ativar subagentes paralelos ({config === null ? '…' : enabled ? 'ativado' : 'desativado'})
+          <span className="dshs_toggleHint">Quando desativados, a ferramenta swarm e o comando /swarm deixam de ser registrados após reiniciar o aplicativo</span>
         </span>
         <button
           type="button"
           className="dshs_toggle"
           role="switch"
           aria-checked={enabled}
-          aria-label="启用并行子代理"
+          aria-label="Ativar subagentes paralelos"
           disabled={busy || config === null}
           onClick={() => { void onToggleEnabled() }}
         />
@@ -193,15 +193,15 @@ export function SwarmSection(): ReactNode {
 
       <div className="dshs_toggleRow">
         <span className="dshs_toggleLabel">
-          自适应调度（{config === null ? '…' : adaptive ? '已开启' : '已关闭'}）
-          <span className="dshs_toggleHint">失败后并发自动减半、恢复后逐步爬升；关闭后并发固定为起始值</span>
+          Agendamento adaptativo ({config === null ? '…' : adaptive ? 'ativado' : 'desativado'})
+          <span className="dshs_toggleHint">Após uma falha, a concorrência é reduzida pela metade e sobe gradualmente após a recuperação; desativado, fica fixa no valor inicial</span>
         </span>
         <button
           type="button"
           className="dshs_toggle"
           role="switch"
           aria-checked={adaptive}
-          aria-label="自适应调度"
+          aria-label="Agendamento adaptativo"
           disabled={busy || config === null}
           onClick={() => { void onToggleAdaptive() }}
         />
@@ -216,7 +216,7 @@ export function SwarmSection(): ReactNode {
               <span className="dshs_fieldLabel">
                 {field.label}
                 <span className={overridden ? 'dshs_fieldBadge dshs_fieldBadgeCustom' : 'dshs_fieldBadge'}>
-                  {overridden ? '自定义' : `默认 ${String(config?.defaults[field.key] ?? '…')}`}
+                  {overridden ? 'Personalizado' : `Padrão ${String(config?.defaults[field.key] ?? '…')}`}
                 </span>
               </span>
               <input
@@ -231,7 +231,7 @@ export function SwarmSection(): ReactNode {
                   setDraft(previous => ({ ...previous, [field.key]: value }))
                 }}
               />
-              <span className="dshs_fieldHint">{field.hint}{dirty ? '（未保存）' : ''}</span>
+              <span className="dshs_fieldHint">{field.hint}{dirty ? ' (não salvo)' : ''}</span>
             </div>
           )
         })}
@@ -243,13 +243,13 @@ export function SwarmSection(): ReactNode {
           className="dshs_button dshs_buttonPrimary"
           disabled={busy || config === null || dirtyFields.length === 0}
           onClick={() => { void onSave() }}
-        >保存修改{dirtyFields.length > 0 ? `（${String(dirtyFields.length)} 项）` : ''}</button>
+        >Salvar alterações{dirtyFields.length > 0 ? ` (${String(dirtyFields.length)} itens)` : ''}</button>
         <button
           type="button"
           className="dshs_button"
           disabled={busy || config === null || Object.keys(config.overrides).length === 0}
           onClick={() => { void onResetAll() }}
-        >全部恢复默认</button>
+        >Restaurar todos os padrões</button>
       </div>
 
       {config !== null

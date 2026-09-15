@@ -1,52 +1,52 @@
-# PRD — 侧边栏底座（sidebar-dock）
+# PRD — Sidebar dock (sidebar-dock)
 
-> 状态：访谈第 2 轮后定稿草案（2026-08-22）。范围依据见同目录 SPEC.md。
+> Estado: rascunho final após a rodada 2 de entrevistas (2026-08-22). Consulte SPEC.md no mesmo diretório para o escopo.
 
-## 1. 用户价值
+## 1. Valor para o usuário
 
-DSH APP 的用户在"与模型协作写代码"的过程中，反复缺少三样东西：**看得见**（项目文件长什么样、改了什么）、**够得着**（快速改一行、跑一条命令）、**跟得上**（子代理在干什么、Git 变化）。本功能把这三件事放进会话页右侧的一个可开合面板，让用户不必在 DSH APP 与 IDE/终端之间来回切换。
+Durante o processo de “escrever código em colaboração com o modelo”, os usuários do DSH APP repetidamente sentem falta de três coisas: **visibilidade** (como são os arquivos do projeto e o que mudou), **acesso rápido** (alterar uma linha ou executar um comando) e **acompanhamento** (o que os subagentes estão fazendo e as mudanças do Git). Este recurso coloca as três em um painel recolhível à direita da página de sessão, evitando alternâncias entre o DSH APP e um IDE/terminal.
 
-## 2. 目标用户与场景
+## 2. Usuários e cenários-alvo
 
-- 主要用户：使用 DSH APP 进行日常开发的工程师（既有项目为主）。
-- 关键场景：
-  1. 会话中模型提到某文件 → 侧栏直接打开查看/对照；
-  2. 小改动不想切 IDE → 侧栏编辑保存；
-  3. 验证模型产出 → 侧栏终端跑一条命令；
-  4. 多任务并行 → 子代理页看拓扑与输出，Git 页看待提交变更。
+- Usuários principais: engenheiros que usam o DSH APP no desenvolvimento diário, sobretudo em projetos existentes.
+- Cenários principais:
+  1. O modelo menciona um arquivo durante a sessão → abri-lo diretamente na barra lateral para consultar/comparar;
+  2. Uma pequena alteração não justifica trocar de IDE → editar e salvar na barra lateral;
+  3. Validar o resultado do modelo → executar um comando no terminal da barra lateral;
+  4. Várias tarefas em paralelo → consultar topologia e saída na página de subagentes e alterações pendentes na página Git.
 
-## 3. 需求清单与优先级
+## 3. Lista de requisitos e prioridades
 
-| 优先级 | 需求 | 交付物 |
+| Prioridade | Requisito | Entrega |
 |---|---|---|
-| **P0** | 侧边栏底座（面板 + 图标列开关 + 会话隔离持久化） | M1 |
-| **P0** | 文件树 + 文件预览（文本高亮/图片/Markdown） | M1 |
-| **P1** | 三方注册服务（registerTab / registerFileViewer） | M1（随底座交付最小面） |
-| **P1** | 真实终端（node-pty + xterm.js，断线回放） | M2 |
-| **P2** | 文件编辑与保存（写信任边界） | M3 |
-| **P2** | Git 面板（status/diff/stage/commit/revert） | M4 |
-| **P2** | 子代理/后台任务页 | M5 |
-| 不做 | 侧边对话（用户裁定：没必要，2026-08-22） | — |
-| 远期 | 内嵌浏览器页 | 待评估 |
+| **P0** | Sidebar dock (painel + alternância na coluna de ícones + persistência isolada por sessão) | M1 |
+| **P0** | Árvore de arquivos + visualização (destaque de texto/imagem/Markdown) | M1 |
+| **P1** | Serviço de registro de terceiros (`registerTab` / `registerFileViewer`) | M1 (superfície mínima entregue com o dock) |
+| **P1** | Terminal real (node-pty + xterm.js, reprodução após desconexão) | M2 |
+| **P2** | Edição e salvamento de arquivos (barreira de confiança para gravação) | M3 |
+| **P2** | Painel Git (status/diff/stage/commit/revert) | M4 |
+| **P2** | Página de subagentes/tarefas em segundo plano | M5 |
+| Não fazer | Conversa lateral (decisão do usuário: não é necessária, 2026-08-22) | — |
+| Futuro | Página de navegador incorporado | A avaliar |
 
-> 优先级依据：第 1 轮 MVP 共识（底座+文件树/预览先行）；终端提前为 P1/M2——host 侧能力路径（node-pty 进 CI）风险最高，尽早排雷（第 2 轮修正，原"缺口后置"判断在 host 双面插件路径下不成立）。
+> Base da prioridade: consenso do MVP na rodada 1 (dock + árvore/visualização primeiro); o terminal foi antecipado para P1/M2 porque o caminho da capacidade host (node-pty no CI) é o maior risco e deve ser investigado cedo (correção da rodada 2; a avaliação original de “deixar a lacuna para depois” não se aplica ao caminho do plugin de duas faces host).
 
-## 4. 成功指标
+## 4. Indicadores de sucesso
 
-- **可用**：SPEC 验收清单全绿（probe 覆盖核心链路）；
-- **稳**：对比参考项目（用户评价"很多 bug"），实现期对其已知痛点逐条规避，交付后同类问题零复发；
-- **轻**：插件禁用时启动零开销；启用时启动增量 ≤ ~350KB（重 chunk 懒加载）；
-- **开放**：三方注册服务有最小可用文档 + 一个自测用示例注册（probe 内置）。
+- **Utilizável**: toda a lista de aceitação da SPEC aprovada (probe cobrindo o fluxo principal);
+- **Estável**: comparar com a solução de referência (avaliada pelo usuário como tendo “muitos bugs”), evitar cada problema conhecido durante a implementação e não repetir problemas equivalentes após a entrega;
+- **Leve**: custo zero de inicialização com o plugin desabilitado; incremento de inicialização ≤ ~350KB quando habilitado (chunks pesados carregados sob demanda);
+- **Aberto**: documentação mínima utilizável do serviço de registro de terceiros + um exemplo de registro para autoteste (incluído no probe).
 
-## 5. 用户体验要求
+## 5. Requisitos de experiência do usuário
 
-- 图标列：窗口右上角、原生窗口控制按钮正下方，竖直排列；悬停显示页面名；激活态高亮；
-- 面板：默认宽度 ~320px，可拖宽；会话切换内容隔离；状态按会话持久化；
-- 错误路径：终端不可用（无 shell）、Git 不可用（非仓库/无 git）、文件不可读（权限）均有明确中文提示，不白屏；
-- 键盘：图标列按钮可 Tab 聚焦、Enter 展开；面板 Escape 收起（不抢输入框焦点）。
+- Coluna de ícones: canto superior direito da janela, logo abaixo dos controles nativos, em disposição vertical; o foco do mouse mostra o nome da página; o estado ativo fica destacado;
+- Painel: largura padrão de ~320px, redimensionável; conteúdo isolado ao trocar de sessão; estado persistido por sessão;
+- Erros: terminal indisponível (sem shell), Git indisponível (fora de um repositório/sem git) e arquivo ilegível (permissão) devem exibir avisos claros em português, sem tela em branco;
+- Teclado: botões da coluna podem receber foco por Tab e expandir com Enter; Escape recolhe o painel sem roubar o foco do campo de entrada.
 
-## 6. 非 goals
+## 6. Fora dos objetivos
 
-- 不做 VS Code 级编辑器（LSP、多光标、工作区级重构）；
-- 不做侧边对话、内嵌浏览器（本期）；
-- 不修改 dsh 内核、不旁路内核安全模型（host 路由自带 trust-fence）。
+- Não fazer editor no nível do VS Code (LSP, múltiplos cursores, refatoração no nível do workspace);
+- Não fazer conversa lateral nem navegador incorporado nesta versão;
+- Não modificar o kernel dsh nem contornar seu modelo de segurança (as rotas host têm sua própria trust-fence).

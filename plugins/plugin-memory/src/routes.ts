@@ -229,26 +229,26 @@ export function registerMemoryRoutes(webServer: WebServerLike, root: MemoryRoot)
           if (body.scope === 'project') {
             const slug = body.slug
             if (typeof slug !== 'string' || !isValidSlug(slug)) {
-              fail(res, 400, 'bad-request', 'slug 格式不正确')
+              fail(res, 400, 'bad-request', 'Formato de slug inválido')
               return
             }
             try {
               removeProject(root.dir, slug)
               ok(res, { scope: 'project', slug })
             } catch {
-              fail(res, 500, 'io', '清空项目记忆失败，请稍后重试')
+            fail(res, 500, 'io', 'Falha ao limpar a memória do projeto; tente novamente mais tarde')
             }
             return
           }
           if (body.scope !== 'global' && body.scope !== undefined) {
-            fail(res, 400, 'bad-request', 'scope 必须是 global 或 project')
+            fail(res, 400, 'bad-request', 'scope deve ser global ou project')
             return
           }
           try {
             root.global.clear()
             ok(res, { scope: 'global' })
           } catch {
-            fail(res, 500, 'io', '清空全局记忆失败，请稍后重试')
+            fail(res, 500, 'io', 'Falha ao limpar a memória global; tente novamente mais tarde')
           }
         })
         .catch((error: unknown) => {

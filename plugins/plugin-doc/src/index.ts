@@ -122,14 +122,14 @@ async function loadWorkspaceDoc(
   const absolute = await existingWorkspaceFile(workspaceRoot, relative, 'file_path')
   const metadata = await lstat(absolute)
   if (metadata.size > MAX_DOC_TEXT_BYTES) {
-    throw new Error(`file_path：文件超过 ${MAX_DOC_TEXT_BYTES} 字节上限`)
+    throw new Error(`file_path: o arquivo excede o limite de ${MAX_DOC_TEXT_BYTES} bytes`)
   }
   const raw = await readFile(absolute, 'utf8')
   let parsed: unknown
   try {
     parsed = JSON.parse(raw)
   } catch {
-    throw new Error('file_path：文件不是合法 JSON；请用 doc_write 重写整份工程')
+    throw new Error('file_path: o arquivo não é um JSON válido; use doc_write para reescrever o projeto completo')
   }
   return { relative, raw, check: checkDocDocument(parsed), parsed }
 }
@@ -149,9 +149,9 @@ function registerDocTools(ctx: Context): () => void {
       + 'existing file requires the SHA-256 returned by the previous doc_write. Follow the ' + SKILL_NAME + ' skill for '
       + 'the format and the authoring workflow.',
     parameters: {
-      file_path: { type: 'string', required: true, description: '工作区内相对路径，.doc.json 结尾，例如 docs/report.doc.json。' },
-      content: { type: 'string', required: true, description: '完整的 UTF-8 JSON 文档内容（{ title, author?, sections }）。' },
-      expected_sha256: { type: 'string', description: '替换已存在文件时必填：当前内容的 SHA-256（来自上一次 doc_write）；新建时省略。' },
+      file_path: { type: 'string', required: true, description: 'Caminho relativo na área de trabalho, terminando em .doc.json, por exemplo docs/report.doc.json.' },
+      content: { type: 'string', required: true, description: 'Conteúdo completo do documento JSON UTF-8 ({ title, author?, sections }).' },
+      expected_sha256: { type: 'string', description: 'Obrigatório ao substituir um arquivo existente: SHA-256 do conteúdo atual (da chamada anterior a doc_write); omita ao criar.' },
     },
     output: OUTCOME_OUTPUT,
     async execute(args, exec: ToolRunContext): Promise<JsonValue> {
@@ -159,16 +159,16 @@ function registerDocTools(ctx: Context): () => void {
       const workspace = workspaceRootOf(exec)
       if ('reason' in workspace) return failed([workspace.reason])
       if (typeof content !== 'string' || content.trim() === '') {
-        return failed(['content：必须是非空的 JSON 字符串'])
+        return failed(['content: deve ser uma string JSON não vazia'])
       }
       if (Buffer.byteLength(content, 'utf8') > MAX_DOC_TEXT_BYTES) {
-        return failed([`content：超过单文件上限 ${MAX_DOC_TEXT_BYTES} 字节`])
+        return failed([`content: excede o limite de ${MAX_DOC_TEXT_BYTES} bytes por arquivo`])
       }
       let parsed: unknown
       try {
         parsed = JSON.parse(content)
       } catch (cause) {
-        return failed([`content：不是合法 JSON（${messageOf(cause)}）；请提交完整 JSON 文本`])
+        return failed([`content: não é um JSON válido (${messageOf(cause)}); envie o texto JSON completo`])
       }
       // Validate before touching the filesystem: an error is an authoring
       // result, and writing a broken project would only move the failure to
@@ -184,19 +184,19 @@ function registerDocTools(ctx: Context): () => void {
         const metadata = await lstat(target).catch(() => undefined)
         let exists = false
         if (metadata !== undefined) {
-          if (!metadata.isFile() || metadata.isSymbolicLink()) throw new Error('file_path：目标不是普通文件')
+          if (!metadata.isFile() || metadata.isSymbolicLink()) throw new Error('file_path: o destino não é um arquivo comum')
           exists = true
         }
         if (exists) {
           if (typeof expectedSha256 !== 'string' || !/^[0-9a-f]{64}$/u.test(expectedSha256)) {
-            throw new Error('expected_sha256：替换已存在文件时必须提供上一次 doc_write 返回的 SHA-256')
+            throw new Error('expected_sha256: ao substituir um arquivo existente, forneça o SHA-256 retornado pela chamada anterior a doc_write')
           }
           const current = await readFile(target)
           if (sha256Of(current) !== expectedSha256) {
-            throw new Error('expected_sha256：文件在读取后已被修改；请重新 doc_check 后再覆盖')
+            throw new Error('expected_sha256: o arquivo foi alterado após a leitura; execute doc_check novamente antes de substituir')
           }
         } else if (typeof expectedSha256 === 'string' && expectedSha256 !== '') {
-          throw new Error('expected_sha256：仅替换已存在文件时使用；新建文件请省略或传空字符串')
+          throw new Error('expected_sha256: use somente ao substituir um arquivo existente; omita ou deixe vazio ao criar')
         }
         await mkdir(dirname(target), { recursive: true })
         await writeFileAtomic(target, content, { mode: 0o644 })
@@ -222,7 +222,7 @@ function registerDocTools(ctx: Context): () => void {
       + 'block index, field and fix hint. needs_revision is a normal authoring result; fix the blocks and check again. '
       + 'Writes nothing.',
     parameters: {
-      file_path: { type: 'string', required: true, description: '工作区内相对路径的 .doc.json 文件。' },
+      file_path: { type: 'string', required: true, description: 'Arquivo .doc.json em um caminho relativo da área de trabalho.' },
     },
     output: OUTCOME_OUTPUT,
     async execute(args, exec: ToolRunContext): Promise<JsonValue> {
@@ -251,8 +251,8 @@ function registerDocTools(ctx: Context): () => void {
       + 'every block and field to fix. Only status exported is a delivery; report the returned .docx path and keep the '
       + 'JSON project for later edits.',
     parameters: {
-      file_path: { type: 'string', required: true, description: '工作区内相对路径的 .doc.json 文件。' },
-      output_file: { type: 'string', required: true, description: '新的工作区内 .docx 输出路径。' },
+      file_path: { type: 'string', required: true, description: 'Arquivo .doc.json em um caminho relativo da área de trabalho.' },
+      output_file: { type: 'string', required: true, description: 'Novo caminho de saída .docx na área de trabalho.' },
     },
     output: OUTCOME_OUTPUT,
     async execute(args, exec: ToolRunContext): Promise<JsonValue> {
@@ -286,7 +286,7 @@ function registerDocTools(ctx: Context): () => void {
           check: checkValue(report),
         } as unknown as JsonValue
       } catch (cause) {
-        return failed([`渲染失败：${messageOf(cause)}；请先运行 doc_check 并逐条修复`])
+        return failed([`Falha na renderização: ${messageOf(cause)}; execute doc_check primeiro e corrija cada problema`])
       }
     },
   })))

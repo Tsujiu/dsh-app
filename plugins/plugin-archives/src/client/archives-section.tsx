@@ -64,11 +64,11 @@ function rowTitle(id: string, title: string): ReactNode {
 }
 
 const SKIP_REASONS: Record<string, string> = {
-  live: '会话正在进行',
-  'not-archived': '不在归档中',
-  missing: '会话日志已不存在或无法定位',
-  io: '读写失败',
-  unsupported: '当前内核不支持物理删除',
+  live: 'Sessão em andamento',
+  'not-archived': 'Não está arquivada',
+  missing: 'O log da sessão não existe mais ou não foi localizado',
+  io: 'Falha de leitura/gravação',
+  unsupported: 'O kernel atual não oferece suporte à exclusão física',
 }
 
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
@@ -111,7 +111,7 @@ function GroupPanel({ group, busy, onDeleteSessions }: {
         <span className="dshar_groupTitle">{group.title}</span>
         {group.cwd !== '' && <span className="dshar_groupPath" title={group.cwd}>{group.cwd}</span>}
         <span className="dshar_groupMeta">
-          <span>{group.sessions.length} 个会话</span>
+          <span>{group.sessions.length} sessões</span>
           <span>{fmtBytes(group.totalBytes)}</span>
           <button
             type="button"
@@ -119,7 +119,7 @@ function GroupPanel({ group, busy, onDeleteSessions }: {
             disabled={busy}
             onClick={(event) => { event.stopPropagation(); onDeleteSessions(group) }}
           >
-            删除全部
+            Excluir tudo
           </button>
         </span>
       </div>
@@ -135,7 +135,7 @@ function GroupPanel({ group, busy, onDeleteSessions }: {
               disabled={busy}
               onClick={() => { onDeleteSessions({ ...group, sessions: [session] }) }}
             >
-              删除
+              Excluir
             </button>
           </span>
         </div>
@@ -255,7 +255,7 @@ export function ArchivesSection(): ReactNode {
   if (error !== '') {
     return (
       <div className="dshar_section">
-        <h2 className="dshar_title">会话归档</h2>
+        <h2 className="dshar_title">Arquivo de sessões</h2>
         <div className="dshar_notice dshar_noticeWarn">{error}</div>
       </div>
     )
@@ -265,7 +265,7 @@ export function ArchivesSection(): ReactNode {
     return (
       <div className="dshar_section">
         <h2 className="dshar_title">会话归档</h2>
-        <div className="dshar_empty">正在读取归档会话…</div>
+        <div className="dshar_empty">Lendo sessões arquivadas…</div>
       </div>
     )
   }
@@ -274,11 +274,11 @@ export function ArchivesSection(): ReactNode {
   return (
     <div className="dshar_section">
       <div className="dshar_header">
-        <h2 className="dshar_title">会话归档</h2>
+        <h2 className="dshar_title">Arquivo de sessões</h2>
         <span className="dshar_sub">
           {empty
-            ? '没有已归档的会话'
-            : `${list.archivedCount} 个会话 · ${fmtBytes(list.totalBytes)} · ${list.groups.length} 个项目`}
+            ? 'Nenhuma sessão arquivada'
+            : `${list.archivedCount} sessões · ${fmtBytes(list.totalBytes)} · ${list.groups.length} projetos`}
         </span>
         {list.staleCount > 0 && (
           <span className="dshar_staleHint" title="归档记录仍在，但其会话日志已不在磁盘上；清理只会移除这些无效记录">
@@ -292,7 +292,7 @@ export function ArchivesSection(): ReactNode {
                 setConfirm({ kind: 'prune', count: list.staleCount })
               }}
             >
-              清理
+            Limpar
             </button>
           </span>
         )}
@@ -306,19 +306,19 @@ export function ArchivesSection(): ReactNode {
           type="text"
           className="dshar_searchInput"
           value={searchQuery}
-          placeholder="搜索历史会话内容…"
+          placeholder="Pesquisar no conteúdo das sessões antigas…"
           disabled={searchBusy}
           onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); void onSearch() } }}
           onChange={(event) => { setSearchQuery(event.target.value) }}
         />
         <button type="button" className="dshar_button" disabled={searchBusy || searchQuery.trim() === ''} onClick={() => { void onSearch() }}>
-          {searchBusy ? '搜索中…' : '搜索'}
+          {searchBusy ? 'Pesquisando…' : 'Pesquisar'}
         </button>
       </div>
       {searchResults !== null && (
         <div className="dshar_searchResults">
           {searchResults.items.length === 0
-            ? <div className="dshar_empty">未找到匹配的会话。</div>
+            ? <div className="dshar_empty">Nenhuma sessão correspondente foi encontrada.</div>
             : searchResults.items.map((hit) => (
               <div key={hit.id} className="dshar_searchHit" title={hit.id}>
                 {rowTitle(hit.id, hit.title)}
@@ -351,17 +351,17 @@ export function ArchivesSection(): ReactNode {
               disabled={busy}
               onClick={() => { void onConfirm() }}
             >
-              {busy ? (confirm.kind === 'prune' ? '清理中…' : '删除中…') : (confirm.kind === 'prune' ? '确认清理' : '确认删除')}
+              {busy ? (confirm.kind === 'prune' ? 'Limpando…' : 'Excluindo…') : (confirm.kind === 'prune' ? 'Confirmar limpeza' : 'Confirmar exclusão')}
             </button>
             <button type="button" className="dshar_button" disabled={busy} onClick={() => { setConfirm(null) }}>
-              取消
+              Cancelar
             </button>
           </span>
         </div>
       )}
 
       {empty
-        ? <div className="dshar_empty">归档的会话会在这里按项目分组显示，可在此彻底删除以释放磁盘空间。</div>
+        ? <div className="dshar_empty">As sessões arquivadas aparecem aqui agrupadas por projeto e podem ser excluídas definitivamente para liberar espaço em disco.</div>
         : list.groups.map((group) => (
           <GroupPanel key={group.cwd} group={group} busy={busy} onDeleteSessions={onDeleteSessions} />
         ))}

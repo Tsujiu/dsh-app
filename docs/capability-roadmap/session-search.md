@@ -1,66 +1,48 @@
-# 会话全文检索（P2）
+# Pesquisa de texto completo em sessões (P2)
 
-> 目标：让用户和 agent 都能"搜到过去"——按内容搜历史会话（不是只搜标题），
-> 并与 plugin-memory 合流成"记忆 + 历史检索"双通道。
+> Objetivo: permitir que usuário e agent "encontrem o passado" — pesquisar sessões históricas por conteúdo (não apenas por título) e unir isso ao plugin-memory como dois canais: "memória + pesquisa histórica".
 
-## 1. 背景与现状
+## 1. Contexto e situação atual
 
-- 内核 `ctx.sessionQuery`（`@deepseek-ai/dsh-session-query`）是统一的会话历史查询服务：
-  列会话、读事件、血缘追踪、**全文搜索**（需挂 sqlite 后端）。已随 dsh 发布。
-- sqlite 后端 `dsh-session-query-sqlite` 在 base bundle 已挂，但
-  `openAt: never`（`packages/bundle/base/cordis.patch.yml:129`）——**默认关闭**，
-  web bundle 注释明确写了开启路径：后续 patch 层把 `openAt` 覆写为 `first-search`
-  （延迟到首次搜索才开 sqlite 句柄，保启动安静）。
-- agent 侧工具 `tool-session-query`（搜/读历史会话）存在但未挂载。
-- 用户侧 UI：无内容搜索界面（侧栏只有标题搜索行）。
+- O kernel `ctx.sessionQuery` (`@deepseek-ai/dsh-session-query`) é o serviço unificado de consulta do histórico de sessões: listar sessões, ler eventos, rastrear linhagem e fazer **pesquisa de texto completo** (requer backend sqlite). É publicado com o dsh.
+- O backend sqlite `dsh-session-query-sqlite` já está montado no base bundle, mas `openAt: never` (`packages/bundle/base/cordis.patch.yml:129`) significa **desativado por padrão**. Os comentários do web bundle indicam o caminho: uma camada de patch posterior sobrescreve `openAt` para `first-search` (o handle sqlite só é aberto na primeira pesquisa, mantendo a inicialização silenciosa).
+- A ferramenta do lado do agent `tool-session-query` (pesquisar/ler sessões históricas) existe, mas não está montada.
+- UI do usuário: não há interface de pesquisa por conteúdo (a barra lateral só tem a linha de pesquisa por título).
 
-## 2. 方案设计
+## 2. Design da solução
 
-### 2.1 三层开启
+### 2.1 Habilitação em três camadas
 
-1. **overlay 一行**（`dsh-app.patch.yml`）：
+1. **uma linha de overlay** (`dsh-app.patch.yml`):
    ```yaml
    - id: session-query-sqlite
      config:
-       path: ':memory:'      # 或 $DSH_HOME 下的持久文件，见开放问题
+        path: ':memory:'      # ou um arquivo persistente em $DSH_HOME; veja questões em aberto
        openAt: first-search
    ```
-   （覆写 base 行 config；id 对齐 base 的行 id，last-write-wins。）
-   > 2026-09-07 教训：不要再加 `tool-session-query` 的 insert 行——该包
-   > （`@deepseek-ai/dsh-tool-session-query`）不在 CLI 运行时闭包内
-   > （apps/cli 无此依赖），insert 会导致 loader `ERR_MODULE_NOT_FOUND`，
-   > 进而整个 `cordis:include` 失败 = 整棵插件树加载失败 = Electron 白屏。
-   > overlay 里插任何包名前，必须先确认它在 CLI 闭包里。
-2. **agent 能力**（暂缓）：`tool-session-query` 包进入 CLI 闭包后，挂载该行，
-   模型即获得"检索历史会话"工具——这是记忆之外的第二条持久知识通道
-   （记忆=策展后的条目；检索=原始对话）。在此之前 archives `/search`
-   返回 `agentToolAvailable: false`，页面如实提示但搜索不受影响。
-3. **用户 UI**：plugin-archives 扩展为"会话历史中心"：现有归档列表之上加搜索框
-   （host route 走 fence 包一层 `ctx.sessionQuery.search`），结果 = 会话卡
-   （标题/项目/命中摘要/时间，点击跳转会话）。不新建插件（同域合流，少一个套件成员）。
+    (sobrescreve o config da linha base; id alinhado ao id da linha base, last-write-wins.)
+   > Lição de 2026-09-07: não adicionar uma linha insert para `tool-session-query`: o pacote (`@deepseek-ai/dsh-tool-session-query`) não está no closure de runtime do CLI (`apps/cli` não tem essa dependência). O insert causa `ERR_MODULE_NOT_FOUND` no loader, fazendo `cordis:include` falhar, a árvore inteira de plugins falhar e o Electron exibir uma tela branca. Antes de inserir qualquer pacote no overlay, confirme que ele está no closure do CLI.
+2. **Capacidade do agent** (adiada): quando o pacote `tool-session-query` entrar no closure do CLI, montar essa linha; o modelo obterá a ferramenta "pesquisar sessões históricas" — o segundo canal de conhecimento persistente além da memória (memória = entradas selecionadas; pesquisa = conversa original). Até lá, archives `/search` retorna `agentToolAvailable: false`; a página informa isso sem afetar a pesquisa.
+3. **UI do usuário**: expandir plugin-archives para um "centro do histórico de sessões": adicionar uma caixa de pesquisa acima da lista de arquivos (host route protegida pelo fence envolvendo `ctx.sessionQuery.search`), com cartões de sessão como resultado (título/projeto/resumo do match/horário, clique para abrir a sessão). Não criar plugin novo (unificar o mesmo domínio mantém um membro a menos no conjunto).
 
-### 2.2 性能与成本
+### 2.2 Desempenho e custo
 
-- `first-search` 语义：进程启动零开销；首次搜索时才建内存索引（node:sqlite）。
-- 索引范围 = 持久化 session log 全量；大会话库首次搜索可能秒级——UI 加
-  "正在建索引"状态，后端 route 设时budget。
+- Semântica de `first-search`: custo zero na inicialização do processo; o índice em memória só é criado na primeira pesquisa (node:sqlite).
+- Escopo do índice = todos os session logs persistentes; a primeira pesquisa em um banco grande pode levar segundos — adicionar o status "indexando" à UI e definir um time budget na route do backend.
 
-## 3. MVP / V2 / 验收
+## 3. MVP / V2 / aceitação
 
-**MVP**：overlay 开启 + agent 工具挂载 + archives 内搜索框（关键词 → 会话卡列表）。
-**V2**：结果内事件级命中展开（`readSession` 有界上下文读取）；按项目/时间过滤；
-跨会话"接着上次做"一键引用（命中会话 → 新会话附引用上下文）。
-**验收**：
-1. 对历史会话中出现过、标题不含的内容关键词搜索，能返回对应会话；
-2. 首次搜索前启动日志无 sqlite 句柄痕迹（first-search 生效）；
-3. 空库 / 零命中 / 超长查询均有稳定 zh-CN 响应；
-4. tool-session-query 在 standard preset 会话内可调用（待该包进入 CLI 闭包后验证；
-   之前写"V1 探针确认 preset 层挂载方式"不准确——当时探针跑的是 dev pnpm 环境，
-   包解析与 packaged CLI 闭包不一致）。
+**MVP**: habilitar o overlay + montar a ferramenta do agent + caixa de pesquisa em archives (palavra-chave → lista de cartões de sessão).
+**V2**: expandir matches no nível de eventos (`readSession` lê contexto limitado); filtrar por projeto/horário; citar com um clique a partir de uma sessão encontrada para continuar em uma nova sessão.
+**Aceitação**:
+1. Pesquisar uma palavra que aparece no conteúdo histórico, mas não no título, retorna a sessão correspondente;
+2. Antes da primeira pesquisa, os logs de inicialização não mostram handles sqlite (first-search funcionando);
+3. banco vazio / zero matches / consulta muito longa têm resposta zh-CN estável;
+4. tool-session-query pode ser chamado em uma sessão do standard preset (a validar depois que o pacote entrar no closure do CLI;
+   a afirmação anterior de que o "probe V1 confirmaria a forma de montagem na camada preset" era imprecisa: o probe usava o ambiente dev pnpm,
+   cuja resolução de pacotes não coincide com o closure do CLI empacotado).
 
-## 4. 开放问题
+## 4. Questões em aberto
 
-- Q1 索引持久化：`:memory:`（每次首搜重建，冷）vs 固定文件（持久，需清理策略）。
-  先用 `:memory:`（与上游 web 默认一致），V2 再评估文件化。
-- Q2 权限：全文搜索会暴露所有项目的会话内容给当前会话的 agent——沿用上游信任模型
-  （单用户本地产品），但在工具描述中写明范围。
+- Q1 Persistência do índice: `:memory:` (reconstruído na primeira pesquisa, frio) vs arquivo fixo (persistente, requer estratégia de limpeza). Usar primeiro `:memory:` (igual ao padrão do web upstream); avaliar arquivos na V2.
+- Q2 Permissões: a pesquisa completa expõe o conteúdo das sessões de todos os projetos ao agent da sessão atual — seguir o modelo de confiança upstream (produto local de usuário único), mas declarar o escopo na descrição da ferramenta.

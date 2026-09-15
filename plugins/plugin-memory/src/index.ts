@@ -149,7 +149,7 @@ export function apply(ctx: Context, config: Config): void {
     const distiller = new MemoryDistiller(memCtx, root, log, (parent, sessionId) => curator.runAfterDistill(parent, sessionId))
     // Both save paths must be able to consolidate: the distill's own trigger
     // above, and memory_save's direct path through this holder (both remain
-    // gated by the same 后台自动提炼 toggle, inside the curator).
+    // gated by the same background refinement toggle, inside the curator).
     requestCurate = (parent, sessionId) => { void curator.runAfterDistill(parent, sessionId) }
     memCtx.effect(() => {
       const disposeDistiller = distiller.attach()

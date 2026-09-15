@@ -36,7 +36,7 @@ import { applySkillReference, removeSkillReference, skillReferenceHint } from '.
 export type SessionSource = HostObservable<StandardSourceBinding>
 
 /** Shown while a toggle waits for the session it will be applied to. */
-const PENDING_NOTICE = '将在会话开始后生效'
+const PENDING_NOTICE = 'Aplicado quando a sessão começar'
 
 /** Small inline page glyph for the capsule's leading cluster. */
 function PdfIcon(): ReactNode {
@@ -234,8 +234,8 @@ export const PdfOfficeEntry = memo(function PdfOfficeEntry(props: { sessionSourc
   // session-bound pass consumes it, this capsule is back to no decision.
   const showNotice = notice !== undefined && parked !== undefined
   const hint = resolved.enabled
-    ? 'PDF 模式已开启；点击关闭'
-    : sessionId === undefined || !loaded ? '点击开启 PDF 模式，将在会话开始时应用' : '点击开启 PDF 模式'
+    ? 'Modo PDF ativado; clique para desativar'
+    : sessionId === undefined || !loaded ? 'Clique para ativar o modo PDF; será aplicado quando a sessão começar' : 'Clique para ativar o modo PDF'
 
   return (
     <>

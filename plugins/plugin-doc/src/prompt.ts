@@ -30,19 +30,19 @@ export interface PromptAssemblyAgent {
  */
 export function docDefaultSectionText(): string {
   return [
-    '## Word / 文档请求',
-    '用户明确要求制作 Word 文档、.docx 或「文档」时可编辑文档时：按 skill `dsh-word` 走 DOC 工作流——doc_write 写入结构化 JSON 工程（*.doc.json）→ doc_check 校验并逐条修复 → doc_render 导出可编辑的 .docx，不要用普通长文回答，也不要用截图或图片代替正文。内容必须来自用户需求与其提供的材料。',
+    '## Word / document request',
+    'When the user explicitly asks for a Word document, .docx, or an editable document: use skill `dsh-word` and the DOC workflow — doc_write writes the structured JSON project (*.doc.json) → doc_check validates and fixes each issue → doc_render exports an editable .docx. Do not answer with ordinary long-form text or replace the body with screenshots or images. Content must come from the user request and supplied materials.',
   ].join('\n')
 }
 
 /** The injected directive for an active Word mode, in Chinese. */
 export function renderDocModeText(): string {
   return [
-    '## Word 生成模式（本会话已启用）',
+    '## Word generation mode (enabled for this session)',
     '',
-    '先做材料盘点与提纲：明确受众、文档目的与章节顺序；内容只能来自用户需求、用户提供的文档与材料，材料不足时先向用户提问或联网收集资料。禁止虚构数据与来源，示例数据必须明确标注。',
+    'First catalog the materials and prepare an outline: define the audience, document purpose, and chapter order. Content may come only from the user request and supplied documents/materials; if materials are insufficient, ask the user or gather information online first. Do not invent data or sources; clearly label example data.',
     '按提纲用 doc_write 写入结构化 JSON 工程：顶层 { title, subtitle?, author?, date?, sections }，sections 是按顺序排列的内容块数组，每个块恰好命中一种内容键——heading{level:1|2|3,text}、paragraph{text,bold?,italic?}、bullets:string[]、table{headers,rows}、image{path}。标题层级连续（H1 → H2 → H3），不要跳级；标题写成 42 字以内的短句，每个 H1/H2 标题后必须紧跟正文块；表格列数不超过 8、每行的单元格数与表头一致，单元格放短语；超过 600 字的段落拆成多段或列表。',
-    '任何文档产出必须按序执行：doc_write（写入并即时校验）→ doc_check（只读全量校验，按块索引与字段逐条修复）→ doc_render（先强制校验，error 拒绝导出；通过后产出 .docx）。把返回的 .docx 路径与工程文件路径告知用户；只有 status: exported 才算交付，needs_revision 时继续修复而不是反复导出。',
+    'Every document output must follow this order: doc_write (write and validate immediately) → doc_check (read-only full validation, fixing issues by block index and field) → doc_render (force validation first; error refuses export, and success produces .docx). Tell the user the returned .docx path and project path; only status: exported counts as delivery. When status is needs_revision, keep fixing instead of repeatedly exporting.',
   ].join('\n')
 }
 

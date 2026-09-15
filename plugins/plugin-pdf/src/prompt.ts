@@ -31,19 +31,19 @@ export interface PromptAssemblyAgent {
  */
 export function pdfDefaultSectionText(): string {
   return [
-    '## PDF / 报告请求',
-    '用户提到 PDF，或要求制作报告、白皮书、规范排版的文档，或提供了 PDF 材料时：按 skill `dsh-pdf` 走 PDF 工作流——需要理解已有 PDF 时用 pdf_read 读取为结构化文本；要产出 PDF 时用 pdf_write 写入结构化 JSON 工程（*.pdf.json）→ pdf_check 校验并逐条修复 → pdf_render 渲染出规范排版的 PDF，不要用普通长文回答，也不要用截图代替正文。内容必须来自用户需求与其提供的材料。',
+    '## PDF / report request',
+    'When the user mentions a PDF, asks for a report, white paper, or professionally laid-out document, or provides PDF material: use skill `dsh-pdf` and the PDF workflow — use pdf_read to understand an existing PDF as structured text; to produce a PDF, use pdf_write to write the structured JSON project (*.pdf.json) → pdf_check validates and fixes issues one by one → pdf_render renders a professionally laid-out PDF. Do not answer with ordinary long-form text or replace the body with screenshots. Content must come from the user request and supplied materials.',
   ].join('\n')
 }
 
 /** The injected directive for an active PDF mode, in Chinese. */
 export function renderPdfModeText(): string {
   return [
-    '## PDF 模式（本会话已启用）',
+    '## PDF mode (enabled for this session)',
     '',
-    '先判断这条任务属于哪条腿：① 把已有 PDF 当材料——用 pdf_read 读取工作区内的 .pdf（返回页数、每页文本、标题/作者），再基于摘录写作；② 按需求生成 PDF——先做材料盘点与提纲，明确受众、用途与章节顺序。内容只能来自用户需求、用户提供的材料与 pdf_read 的结果；材料不足时先向用户提问或联网收集。禁止编造数据与来源，示例数据必须明确标注。',
+    'First determine which path applies: 1) use an existing PDF as material — use pdf_read on the workspace .pdf (it returns page count, per-page text, title, and author), then write from the excerpts; 2) generate a PDF from requirements — first catalog materials and prepare an outline, defining audience, purpose, and chapter order. Content may come only from the user request, supplied materials, and pdf_read results; if insufficient, ask the user or gather information online. Do not invent data or sources; clearly label example data.',
     '按提纲用 pdf_write 写入结构化 JSON 工程：顶层 { title, author?, size?: "a4"|"letter", style?: {header?: "light"|"dark"}, blocks }，blocks 是按顺序排列的内容块数组，每个块恰好命中一种内容键——heading{level:1|2|3,text}、paragraph{text}、bullets:string[]、table{headers,rows}、pageBreak:true。标题必须从 H1 开始且层级连续，不要跳级；表格每行的单元格数与表头一致，单元格放短语；单块不能超出一页。',
-    '任何产出必须按序执行：pdf_write（写入并即时校验）→ pdf_check（只读全量校验，按块索引与字段逐条修复）→ pdf_render（先强制校验，error 拒绝渲染；通过后产出 .pdf）。把返回的 .pdf 路径与工程文件路径告知用户；只有 status: exported 才算交付，needs_revision 时继续修复而不是反复渲染。若 pdf_render 报字体缺字符，按提示改写文案或改用覆盖该字符的字体。',
+    'Every output must follow this order: pdf_write (write and validate immediately) → pdf_check (read-only full validation, fixing issues by block index and field) → pdf_render (force validation first; error refuses rendering, and success produces .pdf). Tell the user the returned .pdf path and project path; only status: exported counts as delivery. When status is needs_revision, keep fixing instead of repeatedly rendering. If pdf_render reports missing glyphs, rewrite the copy as instructed or use a font that covers the character.',
   ].join('\n')
 }
 

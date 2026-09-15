@@ -116,7 +116,7 @@ export class HooksMountManager {
 
   statusFor(bridge: HooksBridge): HooksMountStatus {
     if (!bridge.enabled) return { state: 'disabled' }
-    if (this.loader === undefined) return { state: 'unavailable', message: '当前内核不支持动态挂载，Hooks 功能不可用' }
+    if (this.loader === undefined) return { state: 'unavailable', message: 'O kernel atual não suporta montagem dinâmica; o recurso Hooks está indisponível' }
     const record = this.records.get(bridge.id)
     if (record === undefined) return { state: 'starting' }
     if (record.error !== undefined) return { state: 'error', message: record.error }

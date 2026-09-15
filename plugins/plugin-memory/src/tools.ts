@@ -111,7 +111,7 @@ export function registerMemoryTools(
       if (containsCredential(content)) {
         return Promise.resolve({
           saved: false,
-          reason: '内容可能包含密钥或凭据，拒绝保存；如确需记录请先脱敏再保存',
+          reason: 'O conteúdo pode conter chaves ou credenciais e foi recusado; se realmente precisar registrá-lo, remova os dados sensíveis antes de salvar',
         } as unknown as JsonValue)
       }
       if (content.length > MAX_ENTRY_CHARS) {

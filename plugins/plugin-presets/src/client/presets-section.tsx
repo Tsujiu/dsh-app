@@ -74,7 +74,7 @@ function localDateStamp(): string {
  * cannot flood the dialog (the full list stays in the host's refusal).
  */
 function describeConflictFiles(files: readonly string[]): string {
-  if (files.length === 0) return '（服务器未返回具体清单）'
+  if (files.length === 0) return '(o servidor não retornou uma lista detalhada)'
   const head = files.slice(0, 5).join('、')
   return files.length > 5 ? `${head} 等 ${String(files.length)} 个文件` : head
 }
@@ -133,7 +133,7 @@ export function PresetsSection(): ReactNode {
       anchor.click()
       anchor.remove()
       setTimeout(() => { URL.revokeObjectURL(url) }, 10_000)
-      setNotice(`已导出 ${entry}.dshpreset`)
+      setNotice(`${entry}.dshpreset exportado`)
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : String(failure))
     } finally {
@@ -168,7 +168,7 @@ export function PresetsSection(): ReactNode {
         setNotice(`已导入预设「${body.value.entry}」（${String(body.value.files)} 个文件），可在会话的预设选择器中选用`)
         await load()
       } else {
-        throw new Error('导入响应无法识别')
+        throw new Error('A resposta da importação não pôde ser reconhecida')
       }
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : String(failure))
@@ -274,14 +274,14 @@ export function PresetsSection(): ReactNode {
 
   return (
     <div className="dshPresets-section">
-      <p className="dshPresets-title">预设包</p>
+      <p className="dshPresets-title">Pacotes de predefinições</p>
 
       {error !== undefined ? <div className="dshPresets-banner" role="alert">{error}</div> : null}
       {notice !== undefined ? <div className="dshPresets-noticeOk">{notice}</div> : null}
 
       <div className="dshPresets-card">
         <div className="dshPresets-cardMain">
-          <span className="dshPresets-entryName">配置备份</span>
+          <span className="dshPresets-entryName">Backup da configuração</span>
           <span className="dshPresets-hint">
             导出或恢复当前配置：备份包含插件配置与补丁层；已自动扫描常见密钥形态，命中会拒绝导出——请勿手动放入凭据文件。
             依赖清单中的本地 file: 路径会按原样恢复，换一台机器导入可能失效。

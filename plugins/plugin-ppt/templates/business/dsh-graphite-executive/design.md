@@ -1,6 +1,6 @@
-# Graphite Executive / 石墨商务
+# Graphite Executive / Negócios grafite
 
-Colorway variant of the bundled Blue Professional / 蓝色商务 template: the same twelve editable layouts and geometry, rebuilt around graphite black with a single muted antique-gold accent. The base edition is adapted from Zara Zhang's Blue Professional, commit e5e204fb1f3b06290846e7dcd7aceddabeceec8c. MIT. This native edition rebuilds 12 editable layouts; it is not an HTML import or an exact copy of every upstream slide.
+Colorway variant of the bundled Blue Professional / Negócios azuis template: the same twelve editable layouts and geometry, rebuilt around graphite black with a single muted antique-gold accent. The base edition is adapted from Zara Zhang's Blue Professional, commit e5e204fb1f3b06290846e7dcd7aceddabeceec8c. MIT. This native edition rebuilds 12 editable layouts; it is not an HTML import or an exact copy of every upstream slide.
 
 ## Typography
 
@@ -50,4 +50,4 @@ End an evidence page with a concise interpretation, bounded recommendation or op
 Inspect a rendered page, not just its bounding boxes: check the reading order, line endings, label collisions, chart contrast and the gap above the footer. Keep labels clear of rules and markers. Use native editable text and geometry. Fictional reference data must be replaced by verified user material or visibly marked as an example.
 All charts and diagrams are native editable vectors. Example figures are illustrative, not reported facts. Retain a 48 pt outer margin and use 16:9, 960 × 540 pt.
 
-Copyright (c) 2026 Zara Zhang. DSH adaptation 2026-09-06; Graphite Executive colorway variant 2026-09-13. Derived from the bundled 蓝色商务 template (MIT); see its design document for the pinned upstream source.
+Copyright (c) 2026 Zara Zhang. DSH adaptation 2026-09-06; Graphite Executive colorway variant 2026-09-13. Derived from the bundled Negócios azuis template (MIT); see its design document for the pinned upstream source.

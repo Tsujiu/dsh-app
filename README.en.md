@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="README.md">简体中文</a> · <strong>English</strong> · <a href="README.pt-BR.md">Português (Brasil)</a>
+  <a href="README.md">Português (Brasil)</a> · <strong>English</strong>
 </p>
 
 The shell bundles a versioned dsh runtime (self-managed updates and rollback)

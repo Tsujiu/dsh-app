@@ -54,7 +54,7 @@ import { applySkillReference, removeSkillReference, skillReferenceHint } from '.
 export type SessionSource = HostObservable<StandardSourceBinding>
 
 /** Shown while a decision waits for the session it will be applied to. */
-const PENDING_NOTICE = '将在会话开始后生效'
+const PENDING_NOTICE = 'Aplicado quando a sessão começar'
 
 /** Small inline presentation glyph for the capsule's leading cluster. */
 function DeckIcon(): ReactNode {
@@ -92,13 +92,13 @@ function sessionIdOf(binding: StandardSourceBinding): string | undefined {
 
 /** Picker tabs; categories with no templates are dropped at render time. */
 const TABS: readonly { id: string, label: string }[] = [
-  { id: 'all', label: '全部' },
-  { id: 'business', label: '商务' },
-  { id: 'consulting', label: '咨询' },
-  { id: 'work', label: '工作汇报' },
-  { id: 'academic', label: '学术' },
-  { id: 'editorial', label: '编辑排版' },
-  { id: 'promotion', label: '宣传' },
+  { id: 'all', label: 'Todos' },
+  { id: 'business', label: 'Negócios' },
+  { id: 'consulting', label: 'Consultoria' },
+  { id: 'work', label: 'Apresentação de trabalho' },
+  { id: 'academic', label: 'Acadêmico' },
+  { id: 'editorial', label: 'Edição e layout' },
+  { id: 'promotion', label: 'Promoção' },
 ]
 
 /** One template card: real cover preview + name + one-line description. */
@@ -120,9 +120,9 @@ function TemplateCard(props: {
       <span className="dshPptCardFrame">
         {template.cover !== undefined
           ? <img className="dshPptCardCover" src={template.cover} alt="" loading="lazy" decoding="async" />
-          : <span className="dshPptCardCover dshPptCardCoverMissing" aria-hidden="true">暂无预览</span>}
+          : <span className="dshPptCardCover dshPptCardCoverMissing" aria-hidden="true">Sem prévia</span>}
         {(picked || active) && (
-          <span className="dshPptCardBadge">{picked && !active ? '已选择' : '当前使用'}</span>
+          <span className="dshPptCardBadge">{picked && !active ? 'Selecionado' : 'Em uso'}</span>
         )}
       </span>
       <span className="dshPptCardName">{template.name}</span>
@@ -181,22 +181,22 @@ function TemplatePanel(props: {
         className="dshPptPanel"
         role="dialog"
         aria-modal="true"
-        aria-label="选择 PPT 模板"
+         aria-label="Selecionar modelo de PPT"
         onClick={(event) => { event.stopPropagation() }}
       >
         <div className="dshPptPanelHeader">
-          <span className="dshPptPanelTitle">选择 PPT 模板</span>
-          <span className="dshPptPanelHint">模板决定配色、字体与版式骨架，内容由你的需求与材料生成</span>
+          <span className="dshPptPanelTitle">Selecionar modelo de PPT</span>
+          <span className="dshPptPanelHint">O modelo define cores, fontes e estrutura do layout; o conteúdo é gerado a partir das suas necessidades e materiais</span>
           <button
             type="button"
             className="dshPptPanelButton dshPptPanelClose"
             onClick={onClose}
-            aria-label="关闭模板面板"
+            aria-label="Fechar painel de modelos"
           >
-            关闭
+            Fechar
           </button>
         </div>
-        <div className="dshPptTabs" role="tablist" aria-label="模板分类">
+        <div className="dshPptTabs" role="tablist" aria-label="Categorias de modelos">
           {TABS.filter(definition => countOf(definition.id) > 0).map(definition => (
             <button
               key={definition.id}
@@ -213,10 +213,10 @@ function TemplatePanel(props: {
         </div>
         <div className="dshPptGrid">
           {templates === undefined && loadError === undefined && (
-            <span className="dshPptPanelStatus" role="status">正在加载模板目录…</span>
+            <span className="dshPptPanelStatus" role="status">Carregando catálogo de modelos…</span>
           )}
           {loadError !== undefined && (
-            <span className="dshPptPanelStatus dshPptPanelStatusError" role="alert">模板目录加载失败：{loadError}</span>
+            <span className="dshPptPanelStatus dshPptPanelStatusError" role="alert">Falha ao carregar o catálogo de modelos: {loadError}</span>
           )}
           {visible.map(template => (
             <TemplateCard
@@ -236,17 +236,17 @@ function TemplatePanel(props: {
               disabled={pending}
               onClick={onDisable}
             >
-              关闭 PPT 模式
+              Desativar modo PPT
             </button>
           )}
-          <button type="button" className="dshPptPanelButton" onClick={onClose}>取消</button>
+          <button type="button" className="dshPptPanelButton" onClick={onClose}>Cancelar</button>
           <button
             type="button"
             className="dshPptPanelButton dshPptPanelButtonPrimary"
             disabled={pending || templates === undefined || picked === null}
             onClick={() => { if (picked !== null) onApply(picked) }}
           >
-            使用此模板
+            Usar este modelo
           </button>
         </div>
       </div>
@@ -488,8 +488,8 @@ export const PptOfficeEntry = memo(function PptOfficeEntry(props: { sessionSourc
   // session-bound pass consumes it, this capsule is back to no decision.
   const showNotice = notice !== undefined && parkedPick !== undefined
   const hint = state.enabled
-    ? `${state.label}；点击关闭，点右侧箭头更换模板`
-    : sessionId === undefined || !loaded ? '点击开启 PPT 模式，将在会话开始时应用' : '点击开启 PPT 模式'
+     ? `${state.label}; clique para desativar e use a seta à direita para trocar o modelo`
+     : sessionId === undefined || !loaded ? 'Clique para ativar o modo PPT; será aplicado quando a sessão começar' : 'Clique para ativar o modo PPT'
 
   return (
     <>
@@ -509,8 +509,8 @@ export const PptOfficeEntry = memo(function PptOfficeEntry(props: { sessionSourc
           <button
             type="button"
             className="dshPptCapsuleCaret"
-            title="选择模板"
-            aria-label="选择模板"
+             title="Selecionar modelo"
+             aria-label="Selecionar modelo"
             aria-haspopup="dialog"
             aria-expanded={panelOpen}
             disabled={busy}

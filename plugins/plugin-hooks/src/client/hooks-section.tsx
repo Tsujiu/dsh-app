@@ -72,16 +72,16 @@ function draftFromView(view: BridgeView): Draft {
 }
 
 const NATIVE_PLACEHOLDER = JSON.stringify({ rules: [
-  { name: '禁止修改生成目录', on: 'pre-tool-use', matcher: 'write|edit', action: 'block', message: '生成目录下的文件禁止修改' },
-  { name: '编码规范提醒', on: 'prompt-submit', action: 'context', message: '始终遵循项目的提交规范' },
+  { name: 'Não modificar diretórios gerados', on: 'pre-tool-use', matcher: 'write|edit', action: 'block', message: 'Arquivos em diretórios gerados não podem ser modificados' },
+  { name: 'Lembrete de padrões de código', on: 'prompt-submit', action: 'context', message: 'Siga sempre os padrões de contribuição do projeto' },
 ] }, null, 2)
 
 const STATUS_BADGE: Record<string, { label: string; className: string }> = {
-  mounted: { label: '已挂载', className: 'dshHk-badge dshHk-badgeOn' },
-  starting: { label: '挂载中', className: 'dshHk-badge' },
-  disabled: { label: '已停用', className: 'dshHk-badge dshHk-badgeOff' },
-  error: { label: '挂载失败', className: 'dshHk-badge dshHk-badgeErr' },
-  unavailable: { label: '内核不支持', className: 'dshHk-badge dshHk-badgeErr' },
+  mounted: { label: 'Montado', className: 'dshHk-badge dshHk-badgeOn' },
+  starting: { label: 'Montando', className: 'dshHk-badge' },
+  disabled: { label: 'Desativado', className: 'dshHk-badge dshHk-badgeOff' },
+  error: { label: 'Falha ao montar', className: 'dshHk-badge dshHk-badgeErr' },
+  unavailable: { label: 'Não suportado pelo kernel', className: 'dshHk-badge dshHk-badgeErr' },
 }
 
 export function HooksSection(): ReactNode {
@@ -124,11 +124,11 @@ export function HooksSection(): ReactNode {
     }
     if (inlineMode) {
       const content = draft.configContent.trim()
-      if (content === '') { setError('配置内容不能为空'); return }
+      if (content === '') { setError('O conteúdo da configuração não pode ficar vazio'); return }
       body.configContent = draft.configContent
     } else {
       const configPath = draft.configPath.trim()
-      if (configPath === '') { setError('请填写 hooks.json 的绝对路径'); return }
+      if (configPath === '') { setError('Informe o caminho absoluto de hooks.json'); return }
       // Empty-only gate here: the absolute-path shape is validated server-side
       // (validateBridge → 400 with a zh-CN reason, surfaced by post), so the
       // client never duplicates that rule.
@@ -150,12 +150,12 @@ export function HooksSection(): ReactNode {
     try {
       await post(draft.id === null ? 'bridge/create' : 'bridge/update', draft.id === null ? body : { ...body, id: draft.id })
       setDraft(null)
-      setNotice(draft.id === null ? '已添加并挂载' : '已保存并重新挂载')
+      setNotice(draft.id === null ? 'Adicionado e montado' : 'Salvo e montado novamente')
     } catch { /* post surfaced the error */ }
   }, [draft, post])
 
   const onToggle = useCallback(async (view: BridgeView) => {
-    try { await post('bridge/update', { ...view, enabled: !view.enabled }); setNotice(!view.enabled ? '已启用' : '已停用') }
+    try { await post('bridge/update', { ...view, enabled: !view.enabled }); setNotice(!view.enabled ? 'Ativado' : 'Desativado') }
     catch { /* post surfaced */ }
   }, [post])
 
@@ -164,7 +164,7 @@ export function HooksSection(): ReactNode {
       await post('bridge/delete', { id: view.id })
       if (draft?.id === view.id) setDraft(null)
       setConfirmTarget(null)
-      setNotice('已删除')
+      setNotice('Excluído')
     } catch { /* post surfaced */ }
   }, [draft, post])
 
@@ -174,12 +174,12 @@ export function HooksSection(): ReactNode {
     <div className="dshHk-section">
       <p className="dshHk-title">Hooks</p>
       <p className="dshHk-hint">
-        复用已有的 Claude Code / Codex hooks 配置，或直接在此编写：SessionStart、prompt 提交、工具调用前后、Stop 等时机的命令钩子自动生效。
-        命令在本机执行，请确认来源可信。保存后即时挂载。
+        Reutilize uma configuração existente de hooks do Claude Code / Codex ou escreva uma aqui: hooks de comando para SessionStart, envio de prompts, antes/depois de chamadas de ferramentas e Stop entram em vigor automaticamente.
+        Os comandos são executados localmente; confirme que a origem é confiável. Eles são montados imediatamente após o salvamento.
       </p>
       {error !== undefined ? <div className="dshHk-banner" role="alert">{error}</div> : null}
       {notice !== undefined ? <div className="dshHk-noticeOk">{notice}</div> : null}
-      {data !== null && !data.mountAvailable ? <div className="dshHk-warning">当前内核不支持动态挂载：配置可保存但不会生效。</div> : null}
+      {data !== null && !data.mountAvailable ? <div className="dshHk-warning">O kernel atual não suporta montagem dinâmica: a configuração pode ser salva, mas não entrará em vigor.</div> : null}
 
       {draft !== null ? (
         <form className="dshHk-form" onSubmit={(e) => { e.preventDefault(); void onSave() }}>

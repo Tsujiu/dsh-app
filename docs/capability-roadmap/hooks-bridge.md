@@ -1,77 +1,70 @@
-# Hooks 桥（P1）
+# Ponte de Hooks (P1)
 
-> 目标：用户已有的 Claude Code / Codex `hooks.json` 在 DSH APP 里直接生效——
-> 会话启动、prompt 提交、工具调用前后、run 结束等时机执行用户 shell 钩子，
-> 可拦截 prompt/工具调用、注入上下文。这是"强制规则"的零上下文成本通道。
+> Objetivo: fazer com que o `hooks.json` existente do Claude Code / Codex funcione diretamente no DSH APP: executar hooks shell do usuário na inicialização da sessão, envio de prompt, antes/depois de chamadas de ferramentas e fim da execução; interceptar prompts/chamadas de ferramentas e injetar contexto. É um canal de "regras obrigatórias" sem custo de contexto.
 
-## 1. 背景与价值
+## 1. Contexto e valor
 
-- 内核 hooks 组（`packages/hooks/`）提供 `hook-protocol` 引擎 + 两个方言桥：
-  `dsh-hooks-claude-code`、`dsh-hooks-codex`。**两包都在发布的 `dsh` CLI 依赖里**
-  （`apps/cli/package.json`），运行时可用。
-- 对标：Claude Code 官方建议"必须每次发生的规则用 hooks（模型不可绕过），
-  上下文知识用 skills"。hooks 消耗零模型上下文（arXiv 2026 分析）。
-- 代码质量杠杆：PreToolUse 拦截（如"禁止改 `src/generated/**`"、"提交前必须过 lint"）
-  是确定性守门，比 prompt 约定可靠一个量级。
+- O conjunto de hooks do kernel (`packages/hooks/`) fornece o engine `hook-protocol` + duas pontes de dialeto:
+  `dsh-hooks-claude-code` e `dsh-hooks-codex`. **Ambos os pacotes estão nas dependências do CLI `dsh` publicado**
+  (`apps/cli/package.json`) e estão disponíveis em runtime.
+- Referência: o Claude Code recomenda oficialmente "use hooks para regras que devem ocorrer sempre (o modelo não pode contorná-las) e skills para conhecimento contextual". Hooks não consomem contexto do modelo (análise arXiv 2026).
+- Alavanca de qualidade: interceptação PreToolUse (como "proibir alterações em `src/generated/**`" ou "exigir lint antes do commit") é uma barreira determinística, muito mais confiável que convenções em prompts.
 
-## 2. 内核契约（L1，`packages/hooks/hooks-claude-code/README.md`）
+## 2. Contrato do kernel (L1, `packages/hooks/hooks-claude-code/README.md`)
 
-单行挂载，指向现有配置文件：
+Montagem de uma linha apontando para o arquivo de configuração existente:
 
 ```yaml
 - name: '@deepseek-ai/dsh-hooks-claude-code'
   config:
-    configPath: ./.claude/hooks.json   # 必填；hooks.json 或含 hooks 键的 settings 文件
-    pluginRoot: ./.claude/plugins/my-plugin   # 可选；替换 ${CLAUDE_PLUGIN_ROOT}
-    projectDir: .                       # 默认 session workspace；替换 ${CLAUDE_PROJECT_DIR}
+    configPath: ./.claude/hooks.json   # obrigatório; hooks.json ou arquivo de settings com a chave hooks
+    pluginRoot: ./.claude/plugins/my-plugin   # opcional; substitui ${CLAUDE_PLUGIN_ROOT}
+    projectDir: .                       # workspace padrão da sessão; substitui ${CLAUDE_PROJECT_DIR}
     defaultTimeoutMs: 600000
     stderrSummaryMaxChars: 500
 ```
 
-- 覆盖 Claude Code 文档化的 command-hook 子集；`SessionStart` / prompt 提交 /
-  PreToolUse / PostToolUse / Stop 等时机；可阻塞（返回 model 可见消息）、附加上下文、强制继续。
-- codex 桥同形（`configPath` 指向 Codex 的 hooks 配置）。
-- 权限注意：hooks = shell 执行，配置文件与 shell 访问同级信任（上游原话），UI 需明示。
+- Abrange o subconjunto documentado de command-hook do Claude Code; `SessionStart` / envio de prompt /
+  em eventos como PreToolUse / PostToolUse / Stop; pode bloquear (retornando uma mensagem visível ao modelo), adicionar contexto e forçar a continuação.
+- A ponte codex tem o mesmo formato (`configPath` aponta para a configuração de hooks do Codex).
+- Atenção às permissões: hooks = execução shell, e o arquivo de configuração tem o mesmo nível de confiança do acesso shell (palavras do upstream); a UI deve deixar isso explícito.
 
-## 3. 方案设计
+## 3. Design da solução
 
-### 3.1 挂载（薄）
+### 3.1 Montagem (fina)
 
-新增双面插件 `@dsh-app/plugin-hooks`（模式同 mcp-manager）：
+Adicionar o plugin dual `@dsh-app/plugin-hooks` (mesmo padrão de mcp-manager):
 
-- 配置：`$DSH_HOME/storages/dsh-app-plugin-hooks/config.json`：
+- Configuração: `$DSH_HOME/storages/dsh-app-plugin-hooks/config.json`:
   ```json
   { "enabled": true, "bridges": [
       { "dialect": "claude-code", "enabled": true, "configPath": "D:/proj/.claude/hooks.json" }
   ] }
   ```
-- host 启动时为每条 enabled bridge 走 §mcp-manager 同款动态挂载（或 overlay 合并备选）。
-  `configPath` 支持绝对路径与 `~` 展开；**不校验文件内容**（方言由上游解析，失败降级为
-  日志 + UI 状态"加载失败"）。
+- na inicialização, o host faz a montagem dinâmica de cada bridge habilitada seguindo o padrão da §mcp-manager (ou usa a combinação via overlay como alternativa).
+  `configPath` aceita caminhos absolutos e expansão de `~`; **o conteúdo do arquivo não é validado** (o dialeto é analisado pelo upstream; em caso de falha, degrada para log + estado da UI "falha ao carregar").
 
-### 3.2 设置页 section（order 13，"Hooks"）
+### 3.2 Seção da página de configurações (order 13, "Hooks")
 
-MVP：
-- 开关：总开关 + 每 bridge 开关；
-- bridge 列表：方言、configPath、启用状态、加载结果；
-- 添加向导：选方言 → 填路径（默认建议 `~/.claude/hooks.json`）→ 保存；
-- 安全提示文案（hooks = 本机命令执行，来自文件即执行）。
+MVP:
+- controles: chave geral + chave individual por bridge;
+- lista de bridges: dialeto, configPath, estado de habilitação e resultado do carregamento;
+- assistente de adição: escolher o dialeto → informar o caminho (sugestão padrão `~/.claude/hooks.json`) → salvar;
+- texto de segurança (hooks = execução de comandos na máquina local; o que vier do arquivo será executado).
 
-V2：
-- 钩子执行日志流（上游有 `hook/result` stderr 摘要持久化——确认事件面后做最近执行列表：
-  时间/钩子名/结果/阻塞原因）；
-- 新建 hooks.json 模板（PreToolUse 拦截示例：保护路径 / lint 门）。
+V2:
+- fluxo de logs de execução dos hooks (o upstream persiste um resumo de stderr de `hook/result`; depois de confirmar a superfície de eventos, criar uma lista das execuções recentes:
+  horário/nome do hook/resultado/motivo do bloqueio);
+- criar um modelo de hooks.json (exemplo de interceptação PreToolUse: proteger caminhos / barreira de lint).
 
-## 4. MVP / V2 / 验收
+## 4. MVP / V2 / aceitação
 
-**MVP**：单 bridge（claude-code 方言）+ 总开关 + 路径配置 + 重启后生效 + 状态展示。
-**V2**：codex 方言、多 bridge、执行日志、模板。
-**验收**：
-1. 挂载一个含 PreToolUse 阻断的 hooks.json（拦截对某路径的写），agent 尝试写入被拒
-   且模型收到钩子消息；
-2. configPath 不存在：harness 正常启动，UI 显示"加载失败"，无崩溃；
-3. 总开关关闭后重启：无任何钩子执行；
-4. 降级：内核无 hooks 包时 boot 不受影响。
+**MVP**: uma bridge (dialeto claude-code) + chave geral + configuração de caminho + aplicação após reiniciar + exibição de estado.
+**V2**: dialeto codex, múltiplas bridges, logs de execução e modelos.
+**Aceitação**:
+1. Montar um hooks.json com bloqueio PreToolUse (interceptando a escrita em um caminho); a tentativa de escrita do agent é recusada e o modelo recebe a mensagem do hook;
+2. configPath inexistente: o harness inicia normalmente, a UI exibe "falha ao carregar" e não ocorre crash;
+3. Reiniciar com a chave geral desligada: nenhum hook é executado;
+4. Degradação: o boot não é afetado quando o kernel não tem o pacote de hooks.
 
-风险：hooks 引擎对 web 多会话的 per-session 语义（SessionStart 触发面）需在 V1 探针
-确认——与 mcp-manager 的 V1 验证合并做。
+Risco: a semântica per-session do engine de hooks em múltiplas sessões web (superfície de disparo de SessionStart) precisa ser confirmada pelo probe V1, em conjunto com a validação V1 do mcp-manager.

@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="README.md">简体中文</a> · <a href="README.en.md">English</a> · <strong>Português (Brasil)</strong>
+  <strong>Português (Brasil)</strong> · <a href="README.en.md">English</a>
 </p>
 
 O shell empacota um runtime dsh com versão própria (atualizações e reversão
@@ -195,4 +195,3 @@ O artefato do runtime do kernel é compilado por `scripts/build-runtime.mjs`
 ```sh
 node scripts/build-runtime.mjs win32 x64 0.1.0-rc.8
 ```
-

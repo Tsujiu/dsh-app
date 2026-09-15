@@ -28,7 +28,7 @@ export const inject = ['slots']
 
 /** Nav identity of the preset-packages settings page. */
 const SECTION_ID = 'dsh-app-presets'
-const SECTION_LABEL = '预设包'
+const SECTION_LABEL = 'Pacotes de predefinições'
 
 /**
  * Client apply: adopt styles, swap the nav's generic gear for the sliders

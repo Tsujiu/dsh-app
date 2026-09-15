@@ -24,7 +24,7 @@ export const inject = ['slots']
 
 /** Nav identity of the MCP settings page. */
 const SECTION_ID = 'dsh-app-mcp'
-const SECTION_LABEL = 'MCP 服务器'
+const SECTION_LABEL = 'Servidores MCP'
 
 /**
  * Client apply: adopt styles, swap the nav's generic gear for the MCP plug

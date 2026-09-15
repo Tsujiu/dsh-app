@@ -29,7 +29,7 @@ const NAV_ICON_SVG = [
 const NAV_CELL_CLASS = 'dshMcpNav'
 
 /** The section label this plugin registers (client.ts). */
-const NAV_LABEL = 'MCP 服务器'
+const NAV_LABEL = 'Servidores MCP'
 
 /**
  * Tag the MCP nav cell and paint the plug glyph. Cheap gate first: without a

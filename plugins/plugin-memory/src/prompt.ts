@@ -62,7 +62,7 @@ const GUIDELINES_TEXT = [
   'will obviously restate. When genuinely unsure whether something is durable, skip it — do not save guesses.',
   '',
   'NEVER save work logs: what you implemented, fixed, or committed in this conversation '
-  + '(commit ids, "已完成/已落地" progress reports, file-by-file change lists). The repo and '
+  + '(commit ids, progress reports such as "completed/implemented", file-by-file change lists). The repo and '
   + 'git history already carry that. Neither save summaries of the current task, nor restate '
   + 'things a future session reads from the repo in one tool call (file paths, API signatures, '
   + 'config values, build commands, directory layouts). The test: would a future session in a '

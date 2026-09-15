@@ -85,7 +85,7 @@ test('read: a corrupt file reports an actionable message, not a parser trace', a
       () => readPdfFile(file, 26),
       (cause: unknown) => {
         const message = cause instanceof Error ? cause.message : String(cause)
-        assert.match(message, /不是有效的 PDF|损坏/u)
+       assert.match(message, /não é um PDF válido|corrompido/u)
         return true
       },
     )
@@ -101,8 +101,8 @@ test('read: an encrypted document reports the password instruction', async () =>
     () => readPdfFile(fixture, size),
     (cause: unknown) => {
       const message = cause instanceof Error ? cause.message : String(cause)
-      assert.match(message, /加密/u)
-      assert.match(message, /密码/u)
+       assert.match(message, /criptografado/u)
+       assert.match(message, /senha/u)
       return true
     },
   )
@@ -110,11 +110,11 @@ test('read: an encrypted document reports the password instruction', async () =>
 
 test('read: parser failures map to password and corruption instructions', () => {
   const password = Object.assign(new Error('No password given'), { name: 'PasswordException' })
-  assert.match(describePdfFailure(password), /加密/u)
-  assert.match(describePdfFailure(password), /密码/u)
+   assert.match(describePdfFailure(password), /criptografado/u)
+   assert.match(describePdfFailure(password), /senha/u)
 
   const invalid = Object.assign(new Error('Invalid PDF structure'), { name: 'InvalidPDFException' })
-  assert.match(describePdfFailure(invalid), /不是有效的 PDF/u)
+   assert.match(describePdfFailure(invalid), /não é um PDF válido/u)
 
   // Anything else keeps its own message rather than being mislabelled.
   assert.equal(describePdfFailure(new Error('boom')), 'boom')

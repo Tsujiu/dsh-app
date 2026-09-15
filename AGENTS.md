@@ -1,9 +1,9 @@
 # AGENTS.md — DSH APP (dsh-app)
 
-Guidance for AI coding agents working in this repository. Read this first;
-it assumes you know nothing about the project.
+Orientação para agentes de código de IA que trabalham neste repositório. Leia
+primeiro; ela pressupõe que você não sabe nada sobre o projeto.
 
-## 1. Project overview
+## 1. Visão geral do projeto
 
 DSH APP is a **branded desktop client for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (`dsh`)** — an Electron app
 for Windows / macOS / Linux, aimed at public release. MIT.
@@ -28,7 +28,7 @@ The essential design idea is **"self-contained, no fork"**:
 Full architecture: `docs/ARCHITECTURE.md` (authoritative). User-facing
 README: `README.md`.
 
-## 2. Technology stack
+## 2. Pilha tecnológica
 
 - **Electron 33** main process (shell), **TypeScript 5.7**, compiled to
   **CommonJS / ES2022** via `tsc` (`tsconfig.json`). `"main": "dist/main/index.js"`.
@@ -41,7 +41,7 @@ README: `README.md`.
 - Node.js 22+ required for development; `npm` for this repo, `pnpm` for the
   harness checkout.
 
-## 3. Repository layout
+## 3. Estrutura do repositório
 
 ```
 src/main/        Electron shell: boot/lifecycle, window, tray, server spawn,
@@ -84,7 +84,7 @@ dist/            tsc + copy output (gitignored, generated)
 | `sources/artifact.ts` | GitHub Release artifact resolution + mirror fallback chain (sha512-pinned) |
 | `sources/dev.ts` | Dev mode: build a manifest from the local checkout |
 
-## 4. Kernel runtime layout & update flow
+## 4. Estrutura do runtime do kernel e fluxo de atualização
 
 ```
 <userData>/kernel/
@@ -110,7 +110,7 @@ dist/            tsc + copy output (gitignored, generated)
    fetched from the official host first — mirrors can never substitute
    content because every candidate is checked against the same digest).
    Before offering an update, the shell probes whether this artifact exists —
-   a newer npm version without built artifacts reports "安装包尚未发布"
+    a newer npm version without built artifacts reports "artefato ainda não publicado"
    instead of failing the update.
 3. **Extract** into `staging/`, validate the inner `manifest.json` and that
    platform/arch match the current OS.
@@ -126,9 +126,9 @@ The shell checks for kernel updates every 6 h (`KERNEL_CHECK_INTERVAL_MS`)
 and via the tray menu (both skipped in dev mode); it does not check at
 startup — a missing/broken kernel is simply (re)installed during boot. A
 background check finding a newer kernel does not pop a modal and never
-auto-installs: it shows a persistent bottom-right card (稍后 / 立即更新,
+  auto-installs: it shows a persistent bottom-right card (Mais tarde / Atualizar agora,
 `src/main/update-card.ts` `KERNEL_UPDATE_CARD_SCRIPT`) that resolves to the
-update flow when the user clicks 立即更新. Shell updates are checked 10 s
+  update flow when the user clicks Atualizar agora. Shell updates are checked 10 s
 after boot and via the tray.
 
 ### Update timing gotcha (learned the hard way)
@@ -136,7 +136,7 @@ after boot and via the tray.
 - npm and GitHub publish on **different clocks**: a new dsh dist-tag goes
   live on npm before CI finishes building/uploading the 6-cell runtime
   matrix, so `runtime-<dshVersion>` can lag by ~30 min to hours. A check in
-  that window reports "安装包尚未发布" (artifact pending) — by design the
+  that window reports "artefato ainda não publicado" (artifact pending) — by design the
   shell never offers an update whose tarball cannot yet download. **No new
   shell release is ever needed for a kernel update**; users just re-check
   from the tray.
@@ -173,7 +173,7 @@ after boot and via the tray.
   incident that replaced). `DSH_APP_CHANNEL` overrides the derivation for a
   deliberate cross-line build.
 
-## 5. Server process management
+## 5. Gerenciamento do processo do servidor
 
 - The shell picks a **free port at runtime** (`net.listen(0)`) and pins the
   host to `127.0.0.1` (loopback passes dsh's trusted-host fence). The
@@ -191,7 +191,7 @@ after boot and via the tray.
 - Tray app behavior: closing the window hides it, `window-all-closed` keeps
   the app running, quit happens via the tray menu.
 
-## 6. Brand suite wiring (`plugins/`)
+## 6. Integração do suite de marca (`plugins/`)
 
 Sixteen dsh plugins ship with the product, layered on upstream **without forking
 it**. `plugins/README.md` is the authoritative roster — each plugin's side,
@@ -242,7 +242,7 @@ verify each suite plugin's behavior **end-to-end at runtime** (a tiny probe
 plugin can drive a real turn and watch the effect), never trust
 compile-green across the plugin/kernel boundary.
 
-## 7. Build, dev & verification commands
+## 7. Comandos de build, desenvolvimento e verificação
 
 Prerequisites (one-time): a sibling `deepseek-harness` checkout
 (`../deepseek-harness`) with `pnpm install` + `pnpm run build:web`, then
@@ -297,7 +297,7 @@ node plugins/plugin-<name>/build.mjs        # esbuild -> lib/ (all plugins excep
 > `DESKTOP_CHROME_CSS`), `probe-update-card.cjs`, `probe-shell-update.mjs`,
 > `capture.mjs`.
 
-## 8. Environment variables
+## 8. Variáveis de ambiente
 
 | Variable | Used in | Meaning |
 |---|---|---|
@@ -313,14 +313,13 @@ node plugins/plugin-<name>/build.mjs        # esbuild -> lib/ (all plugins excep
 | `DSH_HOME` | `brand-suite.ts` | dsh profiles home (default `~/.dsh`) |
 | `DSH_VERSION` | `build-runtime.mjs` | Kernel version to bundle (else resolved from the followed line's dist-tag at build time, then asserted against the followed spec) |
 
-## 9. Code & contribution conventions
+## 9. Convenções de código e contribuição
 
 - **Language**: code comments and technical docs are **English**
-  (`docs/ARCHITECTURE.md`, JSDoc). **User-facing strings are zh-CN** — status
-  messages, dialogs, and the setup window are Chinese (the product ships for
-  mainland users first; i18n is a follow-up). New UI copy should be zh-CN
+  (`docs/ARCHITECTURE.md`, JSDoc). **User-facing strings are pt-BR** — status
+  messages, dialogs, and the setup window are Portuguese (Brazil). New UI copy should be pt-BR
   unless a project decision says otherwise. The repository README ships in
-  both zh-CN (`README.md`) and English (`README.en.md`) with a top-of-file
+  Portuguese (Brazil) (`README.md`) and English (`README.en.md`) with a top-of-file
   language switcher; keep both in sync and update both on every README change.
 - **TypeScript**: `strict` mode; avoid `any`. Shell code is CommonJS with
   Node resolution; the client plugin uses `moduleResolution: "Bundler"` and
@@ -334,7 +333,7 @@ node plugins/plugin-<name>/build.mjs        # esbuild -> lib/ (all plugins excep
   primary), the same design as the shell's close/update dialogs.
   `src/main/in-frame-dialog.ts` is the reference implementation; client
   plugins port it as React (see `plugins/plugin-mcp/src/client/confirm-dialog.tsx`).
-  All copy zh-CN.
+  All copy pt-BR.
 - **Security invariants to preserve** (see `docs/ARCHITECTURE.md` §6):
   - Main window: `contextIsolation`, `sandbox`, `nodeIntegration:false`, and
     **no preload** for the remote-origin dsh UI.
@@ -347,7 +346,7 @@ node plugins/plugin-<name>/build.mjs        # esbuild -> lib/ (all plugins excep
   - Never hardcode secrets. API keys are stored via dsh's own credential
     store (`credentials.set`), not in plain settings.
 - **Failure paths**: user-facing error messages are stable, actionable,
-  zh-CN, and must not leak sensitive detail.
+  pt-BR, and must not leak sensitive detail.
 - **Gate commands must run bare — never behind a pipe**: `npm run typecheck
   2>&1 | tail -2 && git commit` commits even when typecheck fails, because
   `&&` sees `tail`'s exit code, not tsc's. Run the gate first, check
@@ -376,7 +375,7 @@ node plugins/plugin-<name>/build.mjs        # esbuild -> lib/ (all plugins excep
   The body lists the root cause and each change as bullets (`- `), then
   closes with a `Verified:` line — no prose paragraphs. Wrap at ~72 chars.
 
-## 10. Release / deployment
+## 10. Release / implantação
 
 ### CI pipeline
 
@@ -650,7 +649,7 @@ Windows signing secrets must be provided as CI secrets;
 bundled via `file:` references and should switch to registry versions once
 published.
 
-## 11. Known TODOs / scaffolds (do not assume finished)
+## 11. TODOs / scaffolds conhecidos (não presuma que estejam concluídos)
 
 - `plugin-brand/src/index.ts`: host services are scaffolds — settings
   namespace, app-info service, desktop bridge remotes are not yet wired.

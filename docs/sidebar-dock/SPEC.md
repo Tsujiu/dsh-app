@@ -1,106 +1,106 @@
-# SPEC — 侧边栏底座（sidebar-dock）
+# SPEC — Sidebar dock (sidebar-dock)
 
-> 状态：定稿（2026-08-22，两轮访谈收敛 + 参考项目痛点清单转化）。术语见同目录 CONTEXT.md。
-> 背景：同类开源方案功能重合但实测 bug 多，**决策为自研**，仅借鉴其已验证的架构模式（MIT 授权的本地参考副本）。
+> Estado: final (2026-08-22, convergência de duas rodadas de entrevistas + conversão da lista de problemas da referência). Consulte o CONTEXT.md no mesmo diretório para os termos.
+> Contexto: uma solução open source semelhante tem sobreposição funcional, mas muitos bugs na prática; **a decisão é desenvolver internamente**, usando somente seus padrões arquiteturais validados como referência (cópia local de referência sob licença MIT).
 
-## 1. 问题定义
+## 1. Definição do problema
 
-DSH APP（dsh 桌面客户端）的用户在会话中需要 IDE 式辅助面：浏览项目文件并预览内容、编辑文件、使用终端、查看 Git 状态、跟踪子代理任务。dsh 官方 Web UI 无此能力面；现有第三方方案质量不达品牌要求。
+Os usuários do DSH APP (cliente desktop dsh) precisam, durante a sessão, de uma superfície auxiliar no estilo IDE: navegar e visualizar arquivos do projeto, editar arquivos, usar um terminal, consultar o status do Git e acompanhar tarefas de subagentes. A Web UI oficial do dsh não oferece essas capacidades; as soluções de terceiros existentes não atendem ao padrão de qualidade da marca.
 
-## 2. 范围
+## 2. Escopo
 
-### In（内置页面与底座）
-| # | 能力 | 说明 |
+### In (páginas incorporadas e dock)
+| # | Capacidade | Descrição |
 |---|---|---|
-| 1 | **侧边栏底座** | 会话页右侧面板容器 + 右上角图标列开关（窗口控制按钮下方，VSCode 活动栏风格）；页面切换、展开/收缩、宽度可拖 |
-| 2 | **文件树 + 预览** | 当前会话工作区目录树（懒加载）；点击文件预览内容（文本/代码高亮/图片/Markdown） |
-| 3 | **文件编辑** | 预览态切换编辑态，保存写回（写权限受信任边界约束） |
-| 4 | **终端** | 真实 shell（node-pty host 侧），xterm.js 前端，会话隔离、断线回放 |
-| 5 | **Git 面板** | status/diff/历史/暂存/提交/还原——每请求 spawn 系统 `git`（无库无状态） |
-| 6 | **子代理/后台任务页** | 基于 dsh 现有 `subagents` wire API：拓扑、实时输出、终止 |
-| 7 | **三方注册服务** | `ctx.dshAppSidebar` 服务：`registerTab` / `registerFileViewer`，供其它 dsh 插件注册侧边栏页面与文件预览器 |
+| 1 | **Sidebar dock** | Contêiner de painel à direita da sessão + alternância na coluna de ícones no canto superior direito (abaixo dos controles da janela, estilo da barra de atividades do VSCode); troca de páginas, expansão/recolhimento e largura redimensionável |
+| 2 | **Árvore + visualização de arquivos** | Árvore do workspace da sessão atual (carregamento sob demanda); clicar em um arquivo abre seu conteúdo (texto/destaque de código/imagem/Markdown) |
+| 3 | **Edição de arquivos** | Alternar da visualização para edição e salvar de volta (permissão de escrita limitada pela barreira de confiança) |
+| 4 | **Terminal** | Shell real (lado host node-pty), frontend xterm.js, isolamento por sessão e reprodução após desconexão |
+| 5 | **Painel Git** | status/diff/histórico/stage/commit/revert; executar `git` do sistema a cada solicitação (sem repositório e sem estado) |
+| 6 | **Página de subagentes/tarefas em segundo plano** | Baseada na wire API `subagents` existente do dsh: topologia, saída em tempo real e encerramento |
+| 7 | **Serviço de registro de terceiros** | Serviço `ctx.dshAppSidebar`: `registerTab` / `registerFileViewer`, para outros plugins dsh registrarem páginas e visualizadores de arquivos |
 
-### Out（明确不做 / 远期）
-- **侧边对话**——用户裁定：没必要（2026-08-22）。
-- **内嵌浏览器页**——远期候选。
-- **fork 或修改 dsh 内核**——架构红线（no-fork）。
-- VS Code 级编辑器（LSP/多光标等）——编辑仅基础文本 + 语法高亮。
+### Out (explicitamente não fazer / futuro)
+- **Conversa lateral**: decisão do usuário: não é necessária (2026-08-22).
+- **Página de navegador incorporado**: candidata para o futuro.
+- **Fork ou modificação do kernel dsh**: linha vermelha da arquitetura (no-fork).
+- Editor no nível do VS Code (LSP/múltiplos cursores etc.): edição limitada a texto básico + destaque de sintaxe.
 
-## 3. 技术约束与架构决策
+## 3. Restrições técnicas e decisões de arquitetura
 
-1. **载体**：新插件 `@dsh-app/plugin-sidebar`（host+client 双面单包，`dsh.plugin.json` 声明 host main + client main），经 brand-suite symlink 接线，随 suite 打包。
-2. **host 侧能力自建**：文件读写（node fs）、终端（node-pty）、Git（spawn git）不依赖内核 wire API。host 能力经 `ctx.webServer.register({ kind: 'prefix', path, handler })` 自注册 **fenced HTTP 路由**暴露；围栏复刻 dsh 网关浏览器信任围栏（Host 头 loopback 校验，防 DNS rebinding）。
-3. **node-pty 原生构建**：进 runtime CI 构建链（build-runtime.mjs 依赖 + 各平台矩阵），用户机零构建。
-4. **UI/文案**：zh-CN；视觉走品牌主题 token（--dsw-alias-*），不硬编码色值。
-5. **不污染官方**：三方注册走我们自己的 ctx 服务，官方 slot 表零改动；设置页挂载用 settings.section（官方开放扩展点）。
-6. **重依赖按需加载**：xterm/编辑器/Mermaid 等重 chunk 懒加载，启动增量 ≤ ~350KB。
-7. **子进程纪律**：一切 spawn（git、shell）必须 `windowsHide: true` + 受控环境（见 §4.6）。
+1. **Veículo**: novo plugin `@dsh-app/plugin-sidebar` (pacote único de duas faces host+client; `dsh.plugin.json` declara host main + client main), conectado por symlink do brand-suite e empacotado com o suite.
+2. **Capacidades host próprias**: leitura/gravação (node fs), terminal (node-pty) e Git (spawn git) não dependem da wire API do kernel. As capacidades host são expostas por **rotas HTTP fenced** autorregistradas via `ctx.webServer.register({ kind: 'prefix', path, handler })`; a barreira reproduz a confiança do navegador do gateway dsh (validação de loopback no cabeçalho Host, evitando DNS rebinding).
+3. **Build nativo de node-pty**: incluir na cadeia de build do runtime no CI (dependências de build-runtime.mjs + matriz por plataforma), sem build na máquina do usuário.
+4. **UI/textos**: pt-BR; usar tokens do tema da marca (`--dsw-alias-*`), sem valores de cor codificados.
+5. **Não poluir o oficial**: o registro de terceiros usa nosso próprio serviço ctx, sem alterar a tabela de slots oficial; montar na página de configurações usa `settings.section` (ponto oficial de extensão).
+6. **Dependências pesadas sob demanda**: carregar chunks pesados como xterm/editor/Mermaid sob demanda, com incremento de inicialização ≤ ~350KB.
+7. **Disciplina de subprocessos**: todo `spawn` (git, shell) deve usar `windowsHide: true` + ambiente controlado (consulte §4.6).
 
-## 4. 验收检查（可测）
+## 4. Verificações de aceitação (mensuráveis)
 
-### 4.1 底座
-- [ ] 图标列出现在窗口右上角（控制按钮正下方）；点击展开/收缩右侧面板；面板宽度可拖；刷新后状态保持（按会话隔离持久化）
-- [ ] **侧栏展开采用并排布局挤压主列，不得 overlay 覆盖会话内容**（回归 #R1）
+### 4.1 Dock
+- [ ] A coluna de ícones aparece no canto superior direito da janela (logo abaixo dos controles); clicar expande/recolhe o painel direito; a largura pode ser redimensionada; o estado persiste após atualizar (isolado por sessão)
+- [ ] **A expansão da barra lateral usa layout lado a lado, comprimindo a coluna principal; não pode sobrepor o conteúdo da sessão** (regressão #R1)
 
-### 4.2 文件树 / 预览
-- [ ] 目录树懒加载展开；文本/图片/Markdown 分别以对应预览器打开；空目录/大目录（>1000 项）不卡顿
-- [ ] 文本带语法高亮；图片显示；Markdown 渲染（strict 安全模式）
-- [ ] **HTML/文本预览响应必须携带 `charset=utf-8`，中文内容零乱码**（回归 #R4）
-- [ ] **编辑保存后预览自动重渲染，无需关闭重开**（回归 #R5）
+### 4.2 Árvore / visualização de arquivos
+- [ ] A árvore de diretórios expande com carregamento sob demanda; texto/imagem/Markdown abrem no visualizador correspondente; diretórios vazios/grandes (>1000 itens) não travam
+- [ ] Texto com destaque de sintaxe; imagens exibidas; Markdown renderizado (modo de segurança strict)
+- [ ] **As respostas de visualização HTML/texto devem conter `charset=utf-8`; conteúdo chinês sem caracteres corrompidos** (regressão #R4)
+- [ ] **Após salvar uma edição, a visualização é renderizada novamente sem fechar e reabrir** (regressão #R5)
 
-### 4.3 编辑
-- [ ] 修改后保存写回磁盘，diff 正确；信任边界外路径拒绝写入并提示
+### 4.3 Edição
+- [ ] Alterações salvas de volta no disco, com diff correto; caminhos fora da barreira de confiança recusados com aviso
 
-### 4.4 终端
-- [ ] 真实 shell 可交互；会话切换终端独立；断开重连回放
-- [ ] **PTY 以干净环境基线 + 白名单注入启动，不受宿主进程环境污染**（回归 #R3）
-- [ ] **无控制台宿主（Windows 服务）下创建 PTY 不反复崩溃**（回归 #R7；平台限制项尽力而为并如实标注）
+### 4.4 Terminal
+- [ ] Shell real interativo; terminais independentes ao trocar de sessão; reprodução ao reconectar
+- [ ] **PTY inicia com uma base de ambiente limpa + injeção por lista de permissões, sem contaminação do ambiente do processo host** (regressão #R3)
+- [ ] **A criação do PTY não falha repetidamente com host sem console (serviço Windows)** (regressão #R7; limitações da plataforma devem ser marcadas honestamente)
 
-### 4.5 Git / 子代理
-- [ ] status/diff/暂存/提交/还原全部可用
-- [ ] **spawn git 全部 `windowsHide: true`，长时间使用无控制台窗口闪烁**（回归 #R6）
-- [ ] 子代理页：拓扑 + 实时输出 + 终止
+### 4.5 Git / subagentes
+- [ ] status/diff/stage/commit/revert totalmente disponíveis
+- [ ] **Todo spawn git usa `windowsHide: true`; uso prolongado não causa cintilação de janela de console** (regressão #R6)
+- [ ] Página de subagentes: topologia + saída em tempo real + encerramento
 
-### 4.6 行为与稳定性
-- [ ] **启用插件后 resume 任意历史会话无报错**（host 半不得污染全局 cordis 上下文/作用域组合）（回归 #R2）
-- [ ] **通过 127.0.0.1 与 localhost 访问均正常（含浏览器发不带端口 Origin 的场景），fence 不误伤**（回归 #R8）
-- [ ] **一切自动打开行为默认关闭、且设置页逐项有开关；自动聚焦的目标页与设置项一致**（回归 #R9/#R10）
-- [ ] **移动端/窄窗口（<768px）不自动弹出遮挡聊天的抽屉**（回归 #R9）
-- [ ] **图标列图标统一 16px 规格，尺寸零漂移**（回归 #R11）
+### 4.6 Comportamento e estabilidade
+- [ ] **Após habilitar o plugin, resume de qualquer sessão histórica sem erros** (o lado host não pode contaminar o contexto/combinação de escopos global do cordis) (regressão #R2)
+- [ ] **O acesso por 127.0.0.1 e localhost funciona (inclusive quando o navegador envia Origin sem porta), sem bloqueio indevido pela fence** (regressão #R8)
+- [ ] **Todo comportamento de abertura automática fica desativado por padrão e tem uma alternância individual nas configurações; a página focalizada corresponde ao item de configuração** (regressão #R9/#R10)
+- [ ] **Em dispositivos móveis/janelas estreitas (<768px), não abrir automaticamente uma gaveta que cubra o chat** (regressão #R9)
+- [ ] **Todos os ícones da coluna seguem 16px, sem qualquer variação de tamanho** (regressão #R11)
 
-### 4.7 扩展与卸载
-- [ ] 模拟插件经 `ctx.dshAppSidebar.registerTab` 注册的页面出现在图标列并可打开；`registerFileViewer` 注册的自定义后缀用对应预览器打开
-- [ ] 卸载/禁用插件后：会话页无残留 DOM、无残留路由、历史会话 resume 正常
+### 4.7 Extensão e desinstalação
+- [ ] A página registrada por um plugin simulado via `ctx.dshAppSidebar.registerTab` aparece na coluna e pode ser aberta; extensões personalizadas registradas por `registerFileViewer` abrem no visualizador correspondente
+- [ ] Após desinstalar/desabilitar o plugin: nenhuma sobra de DOM ou rota na página de sessão; resume de sessões históricas normal
 
-### 4.8 工程门
-- [ ] 全链路 probe：typecheck + esbuild + electron probe（沿用既有验证管线）
+### 4.8 Gate de engenharia
+- [ ] Probe de ponta a ponta: typecheck + esbuild + electron probe (seguindo a pipeline de verificação existente)
 
-## 5. 回归清单（来自同类方案已公开的痛点，编号引用于 §4）
+## 5. Lista de regressões (problemas publicados da solução semelhante, referenciados por número em §4)
 
-| # | 痛点 | 我们的对策 |
+| # | Problema | Nossa medida |
 |---|---|---|
-| R1 | 侧栏容器 overlay 盖住会话主列 | 并排布局（flex 挤压），probe 断言主列可见性 |
-| R2 | 安装后 resume 会话报错（host 上下文污染其它插件作用域组合） | host 半零全局副作用；resume 回归 probe |
-| R3 | 父进程环境污染导致终端工具异常 | PTY 干净环境基线 + 显式白名单 |
-| R4 | HTML 预览缺 charset=utf-8 中文乱码 | 一切文本响应强制 charset；中文用例 |
-| R5 | Markdown 保存后预览不刷新 | 保存事件驱动预览失效重渲染 |
-| R6 | Windows 下 spawn git 不带 windowsHide 致控制台周期性闪烁 | spawn 纪律（§3.7）+ 长跑 probe |
-| R7 | Windows 服务（无控制台）下 node-pty AttachConsole 反复崩 | ConPTY 显式会话/降级路径；平台限制如实标注 |
-| R8 | 127.0.0.1 访问全部 403（fence 对无端口 Origin 误伤） | fence 用例覆盖 127.0.0.1/localhost/带端口/不带端口 Origin |
-| R9 | 自动打开默认开、无开关；移动端抽屉遮挡聊天 | 自动行为默认关 + 设置逐项开关 + 窄屏断言 |
-| R10 | 自动触发打开的是错误页面 | 聚焦目标 = 设置项身份断言 |
-| R11 | 图标大小不一致；分屏后新预览不进预览组 | 16px 规格统一；预览进组断言 |
-| R12 | 安装脚本 BOM/版本解析失败（Windows） | 不适用：我们走 CI 内置分发，无用户机安装脚本 |
+| R1 | Contêiner da barra lateral sobrepõe a coluna principal da sessão | Layout lado a lado (compressão flex), com asserção no probe de que a coluna principal permanece visível |
+| R2 | Resume de sessão falha após a instalação (contaminação do contexto host nos escopos de outros plugins) | Nenhum efeito colateral global no lado host; probe de regressão de resume |
+| R3 | Contaminação do ambiente do processo pai causa falhas nas ferramentas do terminal | Base de ambiente PTY limpa + lista de permissões explícita |
+| R4 | Visualização HTML sem charset=utf-8 causa caracteres chineses corrompidos | Forçar charset em toda resposta de texto; caso com conteúdo chinês |
+| R5 | Visualização Markdown não atualiza após salvar | Renderização novamente invalidada pelo evento de salvamento |
+| R6 | spawn git no Windows sem windowsHide causa cintilação periódica do console | Disciplina de spawn (§3.7) + probe de longa duração |
+| R7 | node-pty AttachConsole falha repetidamente em serviço Windows sem console | Sessão ConPTY explícita/caminho degradado; limitação da plataforma marcada honestamente |
+| R8 | Todo acesso por 127.0.0.1 retorna 403 (fence bloqueia Origin sem porta) | Casos de fence cobrem Origin 127.0.0.1/localhost com e sem porta |
+| R9 | Abertura automática ativada sem alternância; gaveta móvel cobre o chat | Comportamento automático desativado + alternância individual nas configurações + asserção para tela estreita |
+| R10 | Abertura automática aciona a página errada | Asserção de que o foco corresponde à identidade do item de configuração |
+| R11 | Tamanhos inconsistentes de ícones; nova visualização não entra no grupo após dividir o painel | Padronização em 16px; asserção de inclusão da visualização no grupo |
+| R12 | Script de instalação falha ao analisar BOM/versão (Windows) | Não aplicável: a distribuição é integrada ao CI, sem script de instalação na máquina do usuário |
 
-## 6. 依赖
+## 6. Dependências
 
-- 架构模式参考：同类开源方案本地副本（MIT；团队内部路径）——仅借鉴模式，不复制代码。
-- 现有基建：plugin-client-ui 验证管线（build→内核覆盖部署→probe）；brand-suite symlink；settings.section 挂载经验。
+- Referência de padrões arquiteturais: cópia local de solução open source semelhante (MIT; caminho interno da equipe); usar apenas os padrões, sem copiar código.
+- Infraestrutura existente: pipeline de verificação do plugin-client-ui (build → implantação sobre o kernel → probe); symlink do brand-suite; experiência de montagem com `settings.section`.
 
-## 7. 开放问题
+## 7. Questões em aberto
 
-| 问题 | 责任人 | 下一步 |
+| Questão | Responsável | Próximo passo |
 |---|---|---|
-| 会话页主面板挂载点（conversation DOM/slot）选型 | 实现 | M1 侦察（进行中） |
-| 文件编辑器组件选型（CodeMirror 6 vs Monaco） | 实现 | M3 前按 bundle 体积与按需加载方案定 |
-| R7 无控制台宿主的可测性（本机非服务环境） | 实现 | M2 给出降级路径 + 代码审查级保证，如实标注验证边界 |
+| Escolha do ponto de montagem do painel principal da sessão (conversation DOM/slot) | Implementação | Reconhecimento M1 (em andamento) |
+| Escolha do componente editor de arquivos (CodeMirror 6 vs Monaco) | Implementação | Decidir antes de M3 conforme o tamanho do bundle e a estratégia de carregamento sob demanda |
+| Testabilidade de R7 com host sem console (máquina local fora de ambiente de serviço) | Implementação | Fornecer caminho degradado em M2 + garantia em nível de revisão de código, marcando honestamente os limites da verificação |

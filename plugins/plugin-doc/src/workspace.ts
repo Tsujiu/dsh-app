@@ -17,7 +17,7 @@ import type { ToolRunContext } from '@deepseek-ai/dsh-tools'
 export function workspaceRootOf(exec: ToolRunContext): { root: string } | { reason: string } {
   const cwd = exec.agent?.session.header.cwd
   if (typeof cwd !== 'string' || cwd === '') {
-    return { reason: '当前会话没有绑定工作目录；请在一个已打开工作区的会话中使用 Word 工具' }
+    return { reason: 'A sessão atual não está vinculada a uma área de trabalho; use as ferramentas Word em uma sessão com uma área de trabalho aberta' }
   }
   return { root: cwd }
 }

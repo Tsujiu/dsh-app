@@ -1,6 +1,6 @@
-# DSH APP — Architecture
+# DSH APP — Arquitetura
 
-## 1. Design goals
+## 1. Objetivos de design
 
 1. **Self-contained**: the app ships/installs its own dsh kernel. It never
    depends on (or detects) a user-installed `dsh` CLI. A "detect + install"
@@ -11,7 +11,7 @@
    (rc cadence); the shell rarely changes. Two independent update channels.
 4. **Safe updates**: every kernel activation is atomic and reversible.
 
-## 2. Layers
+## 2. Camadas
 
 ```
 ┌─ Shell (Electron main process)
@@ -40,10 +40,11 @@
     plugin-hooks (dual-face)   external hooks bridge (Claude Code / Codex / native rules)
 ```
 
-There is no setup renderer: the first run downloads/activates the kernel in the
-background and reports through the in-window update card and the tray.
+Não há um renderer de configuração: na primeira execução, o kernel é baixado e
+ativado em segundo plano, com informações exibidas no cartão de atualização da
+janela e na bandeja.
 
-## 3. Brand suite wiring
+## 3. Integração do conjunto de marca
 
 Two seams are stitched at every server start (`src/main/brand-suite.ts`):
 
@@ -64,8 +65,8 @@ target kernel) boot vanilla — no links, no overlay, boot is never blocked.
 
 Client-side composition (all zero-upstream-change):
 
-- **Git native view** (`plugin-sidebar`): registered as a `conversation.view`
-  tab beside 对话/审查/轨迹 (`client/views.tsx`), rendering the Git surface —
+- **Visualização nativa Git** (`plugin-sidebar`): registrada como uma aba
+  `conversation.view` ao lado de Conversa/Revisão/Trajetória (`client/views.tsx`), renderizando a superfície Git —
   grouped change list, dual-line-number unified diff, stage/restore/commit,
   tracked files, graph modal with `%B` + `--stat`. The file-tree tab was retired
   once the upstream sidebar shipped workspace file management.
@@ -80,7 +81,7 @@ only, `windowsHide`, and reads via `sessions.binding(sessionId)` (never the
 "most recent session" — blank sessions sort wrong). Every other suite plugin's
 `/api` routes carry the same loopback fence.
 
-## 4. Kernel runtime layout
+## 4. Layout do runtime do kernel
 
 ```
 <userData>/kernel/
@@ -97,7 +98,7 @@ only, `windowsHide`, and reads via `sessions.binding(sessionId)` (never the
 are immutable once installed; activation is one atomic file rewrite, so a bad
 boot can always point back at `previous`.
 
-## 5. Update flow (kernel channel)
+## 5. Fluxo de atualização (canal do kernel)
 
 ```
 check (every 6 h + manual; never at startup)
@@ -142,7 +143,7 @@ Which kernel line a build follows is decided by `package.json` alone (the
 `@deepseek-ai/dsh*` dependencies), resolved by `scripts/kernel-line.mjs` and
 asserted in both the build and CI — see `AGENTS.md` §10.
 
-## 6. Server process management
+## 6. Gerenciamento do processo do server
 
 - Dynamic free port (`net.listen(0)`), passed as `--port`; host pinned to
   `127.0.0.1` (loopback passes the dsh trusted-host fence with no extra flags).
@@ -154,7 +155,7 @@ asserted in both the build and CI — see `AGENTS.md` §10.
   `<userData>/logs/dsh-server-*.log` (kernel diagnostics go to
   `<userData>/logs/dsh-kernel.log`).
 
-## 7. Security posture
+## 7. Postura de segurança
 
 - Main window: `contextIsolation`, `sandbox`, no preload, `nodeIntegration:false`.
 - Navigation confined to the server's own origin; everything else →
@@ -165,7 +166,7 @@ asserted in both the build and CI — see `AGENTS.md` §10.
 - Kernel downloads verified by sha512 before activation (integrity from the
   release asset sidecar; can be upgraded to signed manifests later).
 
-## 8. Packaging & distribution (M4)
+## 8. Empacotamento e distribuição (M4)
 
 - `electron-builder.yml`: win NSIS, mac dmg+zip, linux AppImage+deb; x64+arm64.
 - Shell updates: Windows uses a custom in-app flow — latest.yml detection via
@@ -187,7 +188,7 @@ asserted in both the build and CI — see `AGENTS.md` §10.
 - Signing: macOS notarization requires Apple credentials (CI secrets); Windows
   signing optional (SmartScreen without it); Linux unsigned.
 
-## 9. Known TODOs
+## 9. TODOs conhecidos
 
 - `plugin-brand`: settings namespace + app-info service + desktop bridge remotes
   remain scaffolds.

@@ -16,17 +16,17 @@ import { writeFileAtomic } from '@deepseek-ai/dsh-atomic-write'
 
 export const SKILL_NAME = 'dsh-sheet'
 
-/** The skill body (Chinese, per the product's user-facing language). */
+/** The skill body (Portuguese, per the product's user-facing language). */
 export const SKILL_MARKDOWN = `---
 name: ${SKILL_NAME}
-description: 编写本地 .sheet.json 表格工程并导出可编辑 .xlsx。当用户要求制作、生成 Excel / 表格 / 统计表 / 数据表 / 台账 / 预算表，或要求把数据整理成可编辑的表格文件时使用。
+description: Escreva um projeto de planilha .sheet.json local e exporte um .xlsx editável. Use quando o usuário pedir para criar ou gerar Excel / planilha / tabela estatística / tabela de dados / registro / orçamento, ou organizar dados em um arquivo de planilha editável.
 ---
 
-# 表格生成（${SKILL_NAME}）
+# Geração de planilhas (${SKILL_NAME})
 
 本 Skill 由用户选中的表格模式启用，也适用于用户直接提出的 Excel / 表格请求。目标：为用户产出**可编辑**的 .xlsx 与可复用的 .sheet.json 工程。数据、公式、列宽与数字格式都写进单元格，不使用整表截图或图片代替数据。
 
-## 阶段流程（严格按顺序，不跳步）
+## Fluxo por etapas (siga rigorosamente a ordem, sem pular etapas)
 
 1. 列定义先行：明确这张表回答什么问题（用途）、一行代表什么、每列的含义与单位。列名要精简（建议不超过 12 字）且能独立读懂（如「营收（万元）」而不是「数值」），单位写在列名括号里或 title/subtitle；哪些列是数字列、用什么格式（金额 \`#,##0.00\`、比率 \`0.0%\`、日期 \`yyyy-mm-dd\`）在这一步定下来。
 2. 材料盘点：逐列确认数据来源（用户材料、用户提供的文件、联网检索结果）。材料不足以支撑数据时先向用户提问，或联网收集后再动笔；用户要求占位时必须在列名或说明行标注「示例」。**禁止编造数据。**
@@ -35,7 +35,7 @@ description: 编写本地 .sheet.json 表格工程并导出可编辑 .xlsx。当
 5. 调用 \`sheet_render\`（入参 \`file_path\` 与新的 \`output_file\`，.xlsx 结尾）。渲染内部会再次全量校验：\`status: needs_revision\` 表示未导出任何文件，回到第 4 步继续修；\`status: exported\` 才算交付。
 6. 在回复结尾给出产出 .xlsx 的**明确路径引用**（让用户能直接打开）与 .sheet.json 工程路径，说明哪些数字来自哪里，并说明可用你本机的 Excel/WPS 打开继续编辑；不声称已在本机打开验证过。
 
-## 工程格式
+## Formato do projeto
 
 一个 \`.sheet.json\` 文件就是一本工作簿；\`sheets\` 的顺序就是工作表顺序。
 
@@ -66,7 +66,7 @@ description: 编写本地 .sheet.json 表格工程并导出可编辑 .xlsx。当
 }
 \`\`\`
 
-字段规则（校验器按此拒绝写出与导出）：
+Regras de campos (o validador recusa a gravação e a exportação nestes casos):
 
 - \`title\`：非空字符串，工作簿标题（写入文档属性，并作为每张表上方的合并标题行），不超过 200 字。
 - \`subtitle\` / \`notes\`：可选说明文本，各不超过 200 字；渲染成标题下方的合并说明行（9pt 灰色）。单位、期间、口径、数据来源写在这里，不要塞进数据单元格。
@@ -77,7 +77,7 @@ description: 编写本地 .sheet.json 表格工程并导出可编辑 .xlsx。当
 - \`rows\`：每行一个数组，**长度必须等于列数**（缺值写 \`null\`），单表最多 5000 行；单元格只接受字符串、数字或 \`null\`，单格文本不超过 32767 字。金额、数量、百分比写成数字，单位写进列名，不要写成 \`"1280 万元"\` 这样的文本。
 - \`formulas\`：键是目标单元格（A1 如 \`"B5"\`、\`"$B$5"\`，或绝对 R1C1 如 \`"R5C2"\`；相对 R1C1 不支持），值是以 \`=\` 开头的 Excel 公式（如 \`"=SUM(B2:B4)"\`）。单元格必须落在数据范围内：**第 1 行是表头行，数据从第 2 行开始**，列数不超过本表列数；同一单元格只能有一条公式。公式会覆盖该格原值（校验会给出警告），所以把合计行放在数据下方并留出空行占位。
 
-## 排版规范（导出即生效）
+## Regras de layout (aplicadas na exportação)
 
 - **先定列定义与单位**：列名要短（建议不超过 12 字，校验上限 24 字）且自带单位，如「营收（万元）」「同比（%）」；单位也可以写在 \`title\`/\`subtitle\`。一行代表一条记录，不要把同类指标排成几十列。
 - **数值列用数字类型，不要用字符串**：金额、数量、比率、日期都写成数字/日期形态，单位与口径写进列名或 \`subtitle\`/\`notes\`，不要写成 \`"1280 万元"\`。整列「看起来像数字的文本」超过一半会被提醒；工号/科目编码这类编码列请显式写 \`"numberFormat": "@"\` 声明为文本。
@@ -90,7 +90,7 @@ description: 编写本地 .sheet.json 表格工程并导出可编辑 .xlsx。当
 - **说明写进工程字段，不要塞单元格**：单位、期间、口径、数据来源放 \`title\`/\`subtitle\`/\`notes\`，渲染成表格上方的合并说明行；不要用一行数据或一个「说明」列来承载整段文字。
 - **长文本表不要放进 Excel**：如果某一列超过 60% 的单元格都超过 40 字，说明内容形态更适合文档——改用 dsh-doc 文档模式，或把长文拆成短列后放进表格。
 
-## 硬规则
+## Regras rígidas
 
 - 导出前 error 必须清零：行长度不一致、列名重复或为空、表名非法或重复、公式越界、超行/超列/超单元格上限、列数超过 12、表头超过 24 字、整列/整行为空、比率列未声明百分比格式、显式列宽小于所需宽度都是 error，\`sheet_render\` 会拒绝导出并原样返回问题清单。
 - 导出会自动排版：标题/说明合并行、浅色表头（深色加粗字、默认 24 行高、超宽表头换行并加高）、冻结表头、数据行之间仅水平细线（无左右竖线、无外框）、按所选 \`palette\` 着色、表头对齐跟随该列数据（数字/日期右对齐、文本左对齐）、合计行加粗+强调底+上边线、按内容自适应的列宽（中文字符按 2 个单位，列宽 6–60，保证数字列不出现 \`###\`）与数字格式推断。条件格式、图表、数据透视不在工程格式里，需要时在 Excel 中补充。

@@ -87,7 +87,7 @@ function isRateLimited(error: unknown): boolean {
   const status = (error as { status?: unknown })?.status
     ?? (error as { statusCode?: unknown })?.statusCode
   if (status === 429) return true
-  return /429|rate.?limit|too many requests|请求过于频繁/iu.test(String((error as Error)?.message ?? error ?? ''))
+  return /429|rate.?limit|too many requests/iu.test(String((error as Error)?.message ?? error ?? ''))
 }
 
 function sleep(ms: number): Promise<void> {

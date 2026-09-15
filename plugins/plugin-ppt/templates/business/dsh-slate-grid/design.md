@@ -1,6 +1,6 @@
-# Slate Grid / 灰阶网格
+# Slate Grid / Grade de ardósia
 
-Adapted from open-source layout assets (MIT/Apache-2.0): a structure-only 16:9 geometry family rebuilt as a native, editable twelve-page template. 结构参考自开源版式资产（MIT/Apache-2.0）。This native edition re-authors the slot geometry and Chinese examples; it is not a copy of any upstream deck.
+Adapted from open-source layout assets (MIT/Apache-2.0): a structure-only 16:9 geometry family rebuilt as a native, editable twelve-page template. Its structure is based on open-source layout assets (MIT/Apache-2.0). This native edition re-authors the slot geometry and Chinese examples; it is not a copy of any upstream deck.
 
 ## Typography
 
@@ -12,18 +12,18 @@ Layout examples live in source-zh/. Preview language does not select the languag
 
 A neutral, structure-first presentation system on white (#ffffff): one soft panel tint (#f4f6f8), one hairline border (#d6dce3), one rail tone (#cbd5e1) and one ink (#1e293b) with a single slate accent (#334155). The geometry family is drawn from authored 16:9 page structures rather than one skeleton recolored many times: a left-rail cover, a full-width panel page, three equal cards, a two-column comparison with a center rule, a horizontal timeline with node circles, a four-card KPI row over an evidence panel, a chart-and-insight split, a table-and-summary split, a hero statement field, an editorial split, a section header with an anchor circle and a closing page. Corner radii step 2/4/12/16 px by element size; every panel is filled and hairlined, never outlined in the accent.
 
-1. 封面 (cover)
-2. 章节页 (section)
-3. 章节导读 (content)
-4. 三卡并列 (grid)
-5. 双栏对比 (comparison)
-6. 四步时间轴 (process)
-7. 指标总览 (data)
-8. 图表洞察 (data)
-9. 指标对照表 (table)
-10. 金句页 (quote)
-11. 图文分栏 (content)
-12. 结尾页 (closing)
+1. Cover (cover)
+2. Section page (section)
+3. Section guide (content)
+4. Three-card grid (grid)
+5. Two-column comparison (comparison)
+6. Four-step timeline (process)
+7. Metrics overview (data)
+8. Chart insights (data)
+9. Metrics comparison table (table)
+10. Key statement (quote)
+11. Text-and-image split (content)
+12. Closing page (closing)
 
 ## Expanded composition rules
 
@@ -49,4 +49,4 @@ Inspect a rendered page, not just its bounding boxes: check the reading order, l
 
 All layout geometry is native and editable. Example figures are illustrative, not reported facts. Retain a 48 pt outer margin and use 16:9, 960 × 540 pt.
 
-结构参考自开源版式资产（MIT/Apache-2.0）。
+Structure based on open-source layout assets (MIT/Apache-2.0).

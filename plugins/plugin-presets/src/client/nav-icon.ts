@@ -30,7 +30,7 @@ const NAV_ICON_SVG = [
 const NAV_CELL_CLASS = 'dshPresetsNav'
 
 /** The section label this plugin registers (client.ts). */
-const NAV_LABEL = '预设包'
+const NAV_LABEL = 'Pacotes de predefinições'
 
 /**
  * Tag the preset-packages nav cell and paint the sliders glyph. Cheap gate

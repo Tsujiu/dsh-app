@@ -1,6 +1,6 @@
-# Blush Seminar / 暖砂学刊
+# Blush Seminar / Seminário areia quente
 
-Colorway variant of the bundled Monochrome / 极简研究 template: the same twelve editable layouts and geometry, rebuilt around warm ink on rose-sand paper. The base edition is adapted from Zara Zhang's Monochrome, commit e5e204fb1f3b06290846e7dcd7aceddabeceec8c, MIT.
+Colorway variant of the bundled Monochrome / Pesquisa minimalista template: the same twelve editable layouts and geometry, rebuilt around warm ink on rose-sand paper. The base edition is adapted from Zara Zhang's Monochrome, commit e5e204fb1f3b06290846e7dcd7aceddabeceec8c, MIT.
 
 ## Typography
 
@@ -23,7 +23,7 @@ Layout examples live in source-zh/. Preview language does not select the languag
 
 All charts and diagrams are native editable vectors. Example figures are illustrative, not reported facts. Retain a 48 pt outer margin and use 16:9, 960 × 540 pt.
 
-Copyright (c) 2026 Zara Zhang. DSH adaptation 2026-09-06; Blush Seminar colorway variant 2026-09-12. Derived from the bundled 极简研究 template (MIT); see its design document for the pinned upstream source.
+Copyright (c) 2026 Zara Zhang. DSH adaptation 2026-09-06; Blush Seminar colorway variant 2026-09-12. Derived from the bundled Pesquisa minimalista template (MIT); see its design document for the pinned upstream source.
 
 ## Expanded composition rules
 

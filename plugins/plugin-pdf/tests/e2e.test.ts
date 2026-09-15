@@ -308,7 +308,7 @@ test('e2e: write, check, render and read back a real PDF', async () => {
     assert.equal(checked.status, 'ok')
     assert.equal(checked.errorCount, 0)
     assert.equal(checked.blockCount, 8)
-    assert.match(checked.issuesText as string, /校验通过/u)
+     assert.match(checked.issuesText as string, /Validação aprovada/u)
 
     // 5. Rendering exports a real PDF.
     const rendered = await render.execute({ file_path: relative, output_file: 'docs/report.pdf' }, exec)

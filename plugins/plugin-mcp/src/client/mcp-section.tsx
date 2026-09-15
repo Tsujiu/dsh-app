@@ -108,7 +108,7 @@ function parseKeyValue(text: string): { ok: true, value: Record<string, string> 
     const trimmed = line.trim()
     if (trimmed === '') continue
     const eq = trimmed.indexOf('=')
-    if (eq <= 0) return { ok: false, reason: `键值对格式不正确：「${trimmed}」（应为 KEY=VALUE）` }
+    if (eq <= 0) return { ok: false, reason: `Formato de par incorreto: "${trimmed}" (esperado KEY=VALUE)` }
     out[trimmed.slice(0, eq).trim()] = trimmed.slice(eq + 1).trim()
   }
   return { ok: true, value: out }
@@ -143,7 +143,7 @@ function draftToExternal(draft: Draft): string {
 function draftFromJson(text: string, previous: Draft): Draft {
   const parsed = parseMcpServersJson(text)
   if (parsed.length !== 1) {
-    throw new Error(`编辑模式只对应一个服务器（当前 JSON 含 ${String(parsed.length)} 个）；批量配置请用列表页的「导入 JSON」`)
+    throw new Error(`O modo de edição corresponde a apenas um servidor (o JSON atual contém ${String(parsed.length)}); para configuração em lote, use "Importar JSON" na lista`)
   }
   const { name, def } = parsed[0]
   const raw = mapExternalServer(name, def) as Record<string, unknown>
@@ -169,7 +169,7 @@ function bodyFromDraft(draft: Draft): Record<string, unknown> {
   // Empty-only gate: the serverName shape is validated server-side
   // (validateEntry → 400 with a zh-CN reason); the client never duplicates it.
   if (name === '') {
-    throw new McpValidationError('请填写服务器名（serverName）')
+    throw new McpValidationError('Informe o nome do servidor (serverName)')
   }
   const body: Record<string, unknown> = {
     serverName: name,
@@ -180,7 +180,7 @@ function bodyFromDraft(draft: Draft): Record<string, unknown> {
   }
   if (draft.transport === 'stdio') {
     if (draft.command.trim() === '') {
-      throw new McpValidationError('stdio 服务器必须填写启动命令（command）')
+      throw new McpValidationError('Um servidor stdio deve informar o comando de inicialização (command)')
     }
     body.command = draft.command.trim()
     const args = draft.argsText.split('\n').map(line => line.trim()).filter(line => line !== '')
@@ -196,7 +196,7 @@ function bodyFromDraft(draft: Draft): Record<string, unknown> {
     // Empty-only gate: URL legality is validated server-side (validateEntry →
     // 400); an empty value is rejected here so a blank form never posts.
     if (url === '') {
-      throw new McpValidationError('请填写 streamable-http 服务器的 URL')
+      throw new McpValidationError('Informe a URL do servidor streamable-http')
     }
     body.url = url
     if (draft.headersText.trim() !== '') {
@@ -214,11 +214,11 @@ function bodyFromDraft(draft: Draft): Record<string, unknown> {
 }
 
 const STATUS_BADGE: Record<string, { label: string, className: string }> = {
-  mounted: { label: '已挂载', className: 'dshMcp-badge dshMcp-badgeOn' },
-  starting: { label: '挂载中', className: 'dshMcp-badge' },
-  disabled: { label: '已停用', className: 'dshMcp-badge dshMcp-badgeOff' },
-  error: { label: '挂载失败', className: 'dshMcp-badge dshMcp-badgeErr' },
-  unavailable: { label: '内核不支持', className: 'dshMcp-badge dshMcp-badgeErr' },
+  mounted: { label: 'Montado', className: 'dshMcp-badge dshMcp-badgeOn' },
+  starting: { label: 'Montando', className: 'dshMcp-badge' },
+  disabled: { label: 'Desativado', className: 'dshMcp-badge dshMcp-badgeOff' },
+  error: { label: 'Falha ao montar', className: 'dshMcp-badge dshMcp-badgeErr' },
+  unavailable: { label: 'Não suportado pelo kernel', className: 'dshMcp-badge dshMcp-badgeErr' },
 }
 
 export function McpSection(): ReactNode {
@@ -315,7 +315,7 @@ export function McpSection(): ReactNode {
     try {
       await post(draft.id === null ? 'server/create' : 'server/update', draft.id === null ? body : { ...body, id: draft.id })
       setDraft(null)
-      setNotice(draft.id === null ? '已添加并挂载，工具对当前及新会话即时可用' : '已保存并重新挂载')
+      setNotice(draft.id === null ? 'Adicionado e montado; as ferramentas já estão disponíveis para a sessão atual e as novas' : 'Salvo e montado novamente')
     } catch {
       // post() already surfaced the error banner.
     }

@@ -80,9 +80,9 @@ export function capsuleState(state: {
       enabled: !state.enabled,
     },
     hint: state.enabled
-      ? '点击关闭表格模式'
+      ? 'Clique para desativar o modo de planilha'
       : state.sessionBound && (state.loaded ?? true)
-        ? '点击开启表格模式'
-        : '点击开启表格模式，将在会话开始后生效',
+        ? 'Clique para ativar o modo de planilha'
+        : 'Clique para ativar o modo de planilha; entrará em vigor no início da sessão',
   }
 }

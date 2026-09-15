@@ -269,7 +269,7 @@ export class McpMountManager {
   statusFor(entry: McpServerEntry): McpMountStatus {
     if (!entry.enabled) return { state: 'disabled' }
     if (this.loader === undefined) {
-      return { state: 'unavailable', message: '当前内核不支持 MCP 动态挂载，MCP 功能不可用' }
+      return { state: 'unavailable', message: 'O kernel atual não suporta montagem dinâmica de MCP; o recurso MCP está indisponível' }
     }
     const record = this.records.get(entry.id)
     if (record === undefined) return { state: 'starting' }

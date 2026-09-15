@@ -1,15 +1,12 @@
-# Schedule 会话内定时提醒（P3）
+# Lembretes agendados dentro da sessão (P3)
 
-> 目标：agent 会话内可定时提醒/定时续跑；桌面壳补上上游没有的**系统通知**。
+> Objetivo: permitir lembretes e retomadas agendadas dentro da sessão do agent; o shell desktop acrescenta as **notificações do sistema** que não existem no upstream.
 
-## 1. 背景与内核契约（L1，`docs/user/guide/schedule.md` + overlay 示例）
+## 1. Contexto e contrato do kernel (L1, `docs/user/guide/schedule.md` + exemplo de overlay)
 
-- 会话级持久提醒：模型经 `schedule_create` / `schedule_list` / `schedule_delete` 管理；
-  支持 `after_seconds`、绝对 `at`（RFC 3339）、固定间隔 `every_seconds`（≥300s）。
-  到期 = 在**同一会话**排队一条普通 follow-up 消息（agent 空闲时投递）。
-- 记录随会话日志持久：重启后重开会话继续生效；不跨会话、无邮件/推送
-  （上游明确"没有外部通知"——桌面壳的差异化空间）。
-- 官方开启方式就是一个 3 行 overlay（`apps/cli/config/examples/schedule/cordis.yml`）：
+- Lembretes persistentes por sessão: o modelo os gerencia por `schedule_create` / `schedule_list` / `schedule_delete`; há suporte a `after_seconds`, `at` absoluto (RFC 3339) e intervalo fixo `every_seconds` (≥300s). Ao vencer, uma mensagem follow-up comum é enfileirada na **mesma sessão** (entregue quando o agent estiver ocioso).
+- Os registros persistem com o log da sessão: continuam válidos ao reabrir a sessão após reiniciar; não atravessam sessões e não há email/push (o upstream declara explicitamente "sem notificações externas" — espaço de diferenciação do shell desktop).
+- A forma oficial de habilitar é um overlay de 3 linhas (`apps/cli/config/examples/schedule/cordis.yml`):
 
   ```yaml
   - insert:
@@ -19,46 +16,36 @@
         name: '@deepseek-ai/dsh-schedule'
 
   - id: ui-schedule
-    disabled: false      # base/web bundle 里此行 disabled: true，这里翻开
+    disabled: false      # esta linha é disabled: true no base/web bundle; aqui ela é habilitada
   ```
 
-  启用后 web UI 自动获得：会话头部的只读提醒目录 + 侧栏行的闹钟标记（上游已有渲染，
-  我们零 UI 工作）。
+Após habilitar, a web UI obtém automaticamente: um diretório de lembretes somente leitura no cabeçalho da sessão + um marcador de alarme na linha da barra lateral (a renderização já existe no upstream; não precisamos de trabalho de UI).
 
-## 2. 方案设计
+## 2. Design da solução
 
-### 2.1 挂载（直接照抄）
+### 2.1 Montagem (copiar diretamente)
 
-`dsh-app.patch.yml` 加上述 3 行。无用户配置面（上游定位：模型经工具管理、用户在
-UI 只读查看），本期不做设置页。
+Adicionar as 3 linhas acima a `dsh-app.patch.yml`. Não há superfície de configuração do usuário (o upstream define que o modelo gerencia por ferramentas e o usuário apenas visualiza na UI); não haverá página de configurações nesta etapa.
 
-### 2.2 桌面增值：到期系统通知（依赖 plugin-brand desktop bridge）
+### 2.2 Valor agregado desktop: notificação do sistema ao vencer (depende do plugin-brand desktop bridge)
 
-- 现状缺口：提醒投递 = 会话内一条消息；用户不在会话页就无感。
-- 方案：plugin-brand 的 desktop bridge（desktop-shell-experience.md §1）提供
-  `notify(title, body)`；套件侧监听提醒投递事件（投递会话 id + 摘要）→ 触发
-  Windows/OS 通知，点击通知 → shell 聚焦窗口并打开对应会话。
-- 监听点：提醒投递在会话 log 里有 durable dispatch 记录（上游文档），套件插件经
-  `session/event` 火线过滤即可（plugin-usage 已有同款监听模式）。
-- V2 再做点击跳会话（需要 shell ↔ web 的会话路由协议，先只做通知本身）。
+- Lacuna atual: a entrega do lembrete é uma mensagem na sessão; o usuário não percebe se não estiver na página da sessão.
+- Solução: o desktop bridge do plugin-brand (desktop-shell-experience.md §1) fornece `notify(title, body)`; o conjunto escuta o evento de entrega (id da sessão + resumo) → dispara uma notificação do Windows/OS; clicar na notificação → o shell focaliza a janela e abre a sessão correspondente.
+- Ponto de escuta: a entrega tem um registro durable dispatch no log da sessão (documentação upstream); o plugin do conjunto pode filtrar em tempo real por `session/event` (plugin-usage já usa o mesmo padrão).
+- O salto para a sessão ao clicar fica para V2 (requer um protocolo de roteamento de sessão shell ↔ web; primeiro implementar apenas a notificação).
 
-## 3. MVP / 验收
+## 3. MVP / aceitação
 
-**MVP**：3 行 overlay 启用 + 验证三类计时（after/at/every）在真实会话投递。
-**V2**：系统通知桥（前置：plugin-brand desktop bridge）。
-**验收**：
-1. "10 分钟后提醒我提交" → 10 分钟后会话出现 follow-up 消息，头部目录显示该提醒；
-2. 重启 dsh server 后重开会话，未到期提醒仍生效（持久性）；
-3. 不启用 overlay 的回滚内核：boot 正常（overlay 行按名缺失时优雅跳过——套件纪律，
-   需在探针确认 loader 对缺失包的行为是 warn 不是 crash，并入 mcp-manager V1 验证清单）。
+**MVP**: habilitar o overlay de 3 linhas + verificar a entrega dos três tipos de temporização (after/at/every) em uma sessão real.
+**V2**: ponte de notificação do sistema (pré-requisito: plugin-brand desktop bridge).
+**Aceitação**:
+1. "Lembre-me de fazer commit em 10 minutos" → uma mensagem follow-up aparece na sessão após 10 minutos, e o diretório no cabeçalho exibe o lembrete;
+2. reabrir a sessão após reiniciar o dsh server e confirmar que o lembrete pendente continua válido (persistência);
+3. kernel de reversão sem o overlay: boot normal (linhas ausentes por nome são ignoradas graciosamente — disciplina do conjunto; confirmar no probe que o loader emite warn, não crash, e incluir na lista de validação V1 do mcp-manager).
 
-风险：低。上游有完整用户指南 + 示例 overlay，工作量 ≈ 半天 + 验证。
+Risco: baixo. O upstream tem um guia completo do usuário + overlay de exemplo; esforço ≈ meio dia + verificação.
 
-## 4. 落地记录（2026-09-07）
+## 4. Registro da implementação (2026-09-07)
 
-- overlay 3 行已加入 `dsh-app.patch.yml`（time-context + schedule insert，
-  ui-schedule 翻开）。两个包均在 `apps/cli` dependencies 内（L1），并用
-  packaged `bin.js` 实测整树启动成功（不再只信 dev pnpm 闭包——tool-session-query
-  白屏教训）。`--dump-config` 确认三行在 composed tree 内生效。
-- 未做：系统通知桥（V2，依赖 plugin-brand desktop bridge）、端到端投递验证
-  （需真实模型调用，交用户实测）。
+- As 3 linhas do overlay foram adicionadas a `dsh-app.patch.yml` (time-context + insert de schedule, habilitação de ui-schedule). Ambos os pacotes estão nas dependencies de `apps/cli` (L1), e o boot da árvore completa foi testado com o `bin.js` packaged (não confiar apenas no closure pnpm dev — lição da tela branca de tool-session-query). `--dump-config` confirmou as três linhas na árvore composta.
+- Não feito: ponte de notificações do sistema (V2, depende do plugin-brand desktop bridge) e validação ponta a ponta da entrega (requer chamada de modelo real, a ser testada pelo usuário).

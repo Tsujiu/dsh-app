@@ -24,7 +24,7 @@ export const inject = ['slots']
 
 /** Nav identity of the archive manager settings page. */
 const SECTION_ID = 'dsh-app-archives'
-const SECTION_LABEL = '会话归档'
+const SECTION_LABEL = 'Arquivo de sessões'
 
 /**
  * An archive-box glyph for the settings nav (the shell maps unknown section

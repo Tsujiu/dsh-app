@@ -1,80 +1,68 @@
-# 开发过程工具链（CI 门 / 冒烟探针 / 版本对齐 / 单测 / 通道看板）
+# Ferramentas do processo de desenvolvimento (barreira de CI / probes de smoke / alinhamento de versões / testes / painel de canais)
 
-> 目标：让"我们自己"变快变稳。优先级建议**先于 P0-P3 功能落地**——
-> 套件冒烟探针是后续每个新插件（mcp/hooks/…）的运行时验证手段。
+> Objetivo: tornar o nosso próprio desenvolvimento mais rápido e estável. A prioridade recomendada é **anterior à implementação das funcionalidades P0-P3**: o probe de smoke do conjunto será o meio de verificação em runtime de cada novo plugin (mcp/hooks/…).
 
-## 1. PR CI 门（`ci.yml`）
+## 1. Barreira de CI para PR (`ci.yml`)
 
-现状：`.github/workflows/` 只有 release.yml，`on` 仅 tag push / workflow_dispatch——
-typecheck、8 个插件 tsc、memory/swarm 测试平时全靠手跑（L1）。
+Situação atual: `.github/workflows/` contém apenas release.yml, e `on` dispara somente por tag push / workflow_dispatch; typecheck, tsc dos 8 plugins e testes de memory/swarm normalmente são executados manualmente (L1).
 
-**方案**：push + pull_request 触发，单 ubuntu job：
+**Plano**: disparar em push + pull_request, com um único job ubuntu:
 ```sh
 npm ci
 npm run typecheck
-node plugins/plugin-<name>/build.mjs   # 8 个循环（brand 走 tsc build）
+node plugins/plugin-<name>/build.mjs   # loop de 8 plugins (brand usa tsc build)
 (cd plugins/plugin-memory && npm test)
 (cd plugins/plugin-swarm && npm test)
 ```
-windows job 可后加（suite 代码有平台分支时再扩）。耗时预估 <10 min。
-**验收**：PR 上红绿可用；main push 同样触发。
+Um job Windows pode ser adicionado depois (expandir quando o código do conjunto tiver ramificações por plataforma). Tempo estimado <10 min.
+**Aceitação**: status vermelho/verde disponível no PR; push para main também dispara.
 
-## 2. 套件冒烟探针（治"compile-green ≠ runtime-green"旧伤）
+## 2. Probe de smoke do conjunto (corrige o problema antigo "compile-green ≠ runtime-green")
 
-背景：alpha.4 删 `Session.events` 后，套件 typecheck/test 全绿、运行时静默坏了几天
-（AGENTS.md §6 明文教训）。rc 线 API 漂移是常态，每次内核 bump 都在裸奔。
+Contexto: depois que alpha.4 removeu `Session.events`, typecheck/test do conjunto ficaram verdes, mas o runtime permaneceu silenciosamente quebrado por dias (lição explícita em AGENTS.md §6). Drift de API na linha rc é normal; cada bump do kernel hoje ocorre sem proteção.
 
-**方案**：`scripts/smoke-suite.mjs`（dev/prod 两态可跑）：
-1. 以 dev 模式起 `dsh web`（或对 bundled kernel 起进程），挂全套件 overlay；
-2. 等健康检查通过后，逐插件打其 API routes 断言 200 + 关键字段
-   （usage/status、archives/list、memory/status、swarm/status、mcp/status…）；
-3. 挂载面断言：loader 日志无套件相关 error；`/plugins/.../client.js` 可取
-   （client 半 bundle 完整性）；
-4. 退出码汇总，供 CI 与本地 `npm run verify`（package.json 新 script）使用。
+**Plano**: `scripts/smoke-suite.mjs` (executável nos modos dev/prod):
+1. Iniciar `dsh web` no modo dev (ou iniciar um processo com o bundled kernel) e montar o overlay completo;
+2. Depois de passar na verificação de saúde, chamar as API routes de cada plugin e afirmar 200 + campos principais (usage/status, archives/list, memory/status, swarm/status, mcp/status…);
+3. Afirmar a superfície montada: nenhum error relacionado ao conjunto nos logs do loader; `/plugins/.../client.js` pode ser obtido (integridade do bundle client);
+4. Consolidar o código de saída para uso pelo CI e pelo `npm run verify` local (novo script no package.json).
 
-接入：ci.yml 追加 job（ubuntu 起真实内核）；内核 bump SOP（AGENTS.md §4 step 4）
-追加"跑 smoke-suite"步骤。
+Integração: adicionar um job ao ci.yml (kernel real iniciado no ubuntu); adicionar a etapa "executar smoke-suite" ao SOP de bump do kernel (AGENTS.md §4 step 4).
 
-**验收**：人为在 patch.yml 指向一个不存在的插件行 → 探针红；正常套件 → 绿。
-对 rc.1→新版 bump 的回归演练一次。
+**Aceitação**: apontar manualmente uma linha para um plugin inexistente em patch.yml → probe vermelho; conjunto normal → verde. Fazer um ensaio de regressão para o bump rc.1→nova versão.
 
-## 3. 内核版本对齐脚本（消灭手工易错步骤）
+## 3. Script de alinhamento da versão do kernel (elimina etapas manuais sujeitas a erros)
 
-现状：内核 bump 要手改根 `package.json` + 8 个 `plugins/*/package.json` 的
-`@deepseek-ai/*` devDeps 到同一行（AGENTS.md §4 step 2），漏一个就 dual-instance
-dsh-llm、typecheck 爆炸。
+Situação atual: um bump do kernel exige editar manualmente o `package.json` raiz + os
+`@deepseek-ai/*` devDeps dos 8 `plugins/*/package.json` para a mesma versão
+(AGENTS.md §4 step 2); esquecer um deles cria uma instância duplicada de
+dsh-llm e faz o typecheck falhar.
 
-**方案**：`scripts/bump-kernel-deps.mjs <version|--dist-tag <tag>>`：
-- 解析 dist-tag（复用 `sources/registry.ts` 的解析规则）；
-- 改根 + 遍历插件 package.json 匹配 `@deepseek-ai/*` devDeps 统一改写；
-- 打印 diff 摘要；不改 lockfile（提示随后手动 `npm install` / 插件内
-  `--legacy-peer-deps`，遵循 §4 的两个不同 install 纪律）。
-**验收**：对当前树 dry-run 输出的目标版本与手工计算一致。
+**Solução**: `scripts/bump-kernel-deps.mjs <version|--dist-tag <tag>>`:
+- analisar o dist-tag (reutilizando as regras de `sources/registry.ts`);
+- editar a raiz e percorrer os package.json dos plugins, reescrevendo de forma uniforme os devDeps que correspondem a `@deepseek-ai/*`;
+- imprimir um resumo do diff; não alterar o lockfile (avisar para executar depois `npm install` / `--legacy-peer-deps` dentro do plugin, seguindo as duas disciplinas de instalação diferentes da §4).
+**Aceitação**: a versão-alvo produzida pelo dry-run na árvore atual coincide com o cálculo manual.
 
-## 4. shell/kernel 首批单测（node:test，与插件同风格）
+## 4. Primeiros testes unitários do shell/kernel (node:test, no mesmo estilo dos plugins)
 
-范围（纯逻辑优先，不碰 Electron）：
-- `src/kernel/manifest.ts`：current.json 原子写（tmp+rename）、损坏文件容错；
-- `src/kernel/sources/registry.ts`：dist-tag 解析、registry 链 fallback、
-  prerelease 跟随最高版本的规则；
-- `src/kernel/manager.ts` 的可提纯决策函数：更新建议（版本比较 + artifact 存在与否）、
-  回滚触发条件（两次健康失败→回滚一次）；
-- `src/main/server.ts` 的日志 redact 规则与 settled-URL 解析。
+Escopo (prioridade para lógica pura, sem tocar no Electron):
+- `src/kernel/manifest.ts`: escrita atômica de current.json (tmp+rename), tolerância a arquivos corrompidos;
+- `src/kernel/sources/registry.ts`: análise de dist-tag, fallback da cadeia de registries e regra de acompanhar a versão mais alta de prerelease;
+- funções de decisão extraíveis de `src/kernel/manager.ts`: sugestão de atualização (comparação de versões + presença do artifact), condição de rollback (duas falhas de saúde → um rollback);
+- regras de redact dos logs e análise de settled-URL em `src/main/server.ts`.
 
-**验收**：`npm run test`（根 package.json 新增）全绿；CI 门接入。
-估计覆盖 kernel 决策面 60%+ 行数、零 mock Electron。
+**Aceitação**: `npm run test` (adicionado ao package.json raiz) totalmente verde; integrado à barreira do CI.
+Estimativa: cobrir mais de 60% das linhas da superfície de decisão do kernel, sem mocks de Electron.
 
-## 5. 内核通道看板（小工具）
+## 5. Painel dos canais do kernel (ferramenta pequena)
 
-现状：npm dist-tag 先上线、`runtime-<v>` artifacts 后齐（§4 时差窗口），
-窗口内检查报"安装包尚未发布"，曾差点误诊为用户网络问题（AGENTS.md §4 gotcha）。
+Situação atual: o dist-tag do npm fica disponível primeiro, e os artifacts de `runtime-<v>` ficam completos depois (janela de diferença da §4); durante essa janela, a verificação informa "o pacote de instalação ainda não foi publicado", o que quase foi diagnosticado incorretamente como problema de rede do usuário (gotcha da §4 do AGENTS.md).
 
-**方案**：`scripts/probe-channel.mjs`：取 dist-tags 全表 → 对每个比 active 新的版本
-查 `runtime-<v>` release 的 6 cell 资产齐套性（`gh api` / GitHub API）→ 输出矩阵
-（版本 × cell × 就绪）。CI 定时（或手动）跑，发版后盯齐套。
-**验收**：对 rc.1 输出全绿矩阵；人为找一个缺 cell 的历史 release 验证告警。
+**Solução**: `scripts/probe-channel.mjs`: obter a tabela completa de dist-tags → para cada versão mais nova que a active, verificar se os assets das 6 cells da release `runtime-<v>` estão completos (`gh api` / GitHub API) → emitir uma matriz (versão × cell × pronta). Executar periodicamente no CI (ou manualmente) e acompanhar a completude após uma publicação.
+**Aceitação**: produzir uma matriz totalmente verde para rc.1; encontrar intencionalmente uma release histórica com uma cell ausente e validar o alerta.
 
-## 实施顺序
+## Ordem de implementação
 
-1（ci.yml，静态）→ 2（冒烟探针，价值最大）→ 4（单测）→ 3（对齐脚本）→ 5（看板）。
-其中 2 完成后，capability-roadmap 各新插件的验收标准全部可以引用它做回归。
+1 (ci.yml, estático) → 2 (probe de smoke, maior valor) → 4 (testes unitários) → 3 (script de alinhamento) → 5 (painel).
+Depois que o item 2 estiver concluído, os critérios de aceitação de todos os novos plugins do capability-roadmap poderão usá-lo para regressão.

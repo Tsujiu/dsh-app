@@ -71,10 +71,10 @@ export function describePdfFailure(cause: unknown): string {
   const name = cause instanceof Error ? cause.name : ''
   const message = cause instanceof Error ? cause.message : String(cause)
   if (name === 'PasswordException' || /password/iu.test(message)) {
-    return '文件已加密，需要密码才能读取；请先用其他工具去除密码后重新读取'
+    return 'O arquivo está criptografado e requer uma senha; remova a senha com outra ferramenta e tente ler novamente'
   }
   if (name === 'InvalidPDFException' || /invalid pdf|invalidpdf|structure/iu.test(message)) {
-    return '文件不是有效的 PDF，或已损坏；请确认文件完整后重试'
+    return 'O arquivo não é um PDF válido ou está corrompido; confirme sua integridade e tente novamente'
   }
   return message
 }

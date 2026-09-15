@@ -20,7 +20,7 @@ export interface ConfirmDialogProps {
 }
 
 export function ConfirmDialog({
-  open, title, message, confirmLabel, cancelLabel = '取消', busy = false, onConfirm, onClose,
+  open, title, message, confirmLabel, cancelLabel = 'Cancelar', busy = false, onConfirm, onClose,
 }: ConfirmDialogProps): ReactNode {
   useEffect(() => {
     if (!open) return

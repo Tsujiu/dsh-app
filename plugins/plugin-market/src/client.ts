@@ -24,7 +24,7 @@ export const inject = ['slots']
 
 /** List identity of the market entry. */
 const ENTRY_ID = 'dsh-app-market'
-const ENTRY_LABEL = '插件市场'
+const ENTRY_LABEL = 'Mercado de plugins'
 
 /**
  * Client apply: adopt styles and register the market entry.

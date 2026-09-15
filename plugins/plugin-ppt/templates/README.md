@@ -1,34 +1,52 @@
-# 内置模板库
+# Biblioteca de modelos incorporada
 
-本目录是 PPT 插件的版式模板库资产，随插件分发，仅供本插件的模板工具
-（`ppt_list_templates` / `ppt_get_template_reference` / `ppt_get_template_pages`）
-与模板选择面板读取。运行时不会写本目录。
+Este diretório contém os assets da biblioteca de modelos de layout do plugin PPT.
+Eles são distribuídos com o plugin e lidos somente pelas ferramentas de modelos
+(`ppt_list_templates` / `ppt_get_template_reference` / `ppt_get_template_pages`)
+e pelo painel de seleção. O runtime não grava neste diretório.
 
-## 目录结构
+## Estrutura de diretórios
 
-每个模板一个目录：`<分类>/<模板 id>/`。
+Cada modelo tem um diretório: `<category>/<template id>/`.
 
-| 文件/目录 | 用途 |
+| Arquivo/diretório | Finalidade |
 |---|---|
-| `metadata.json` | 模板元数据：名称、分类、字体、色板、逐页结构索引（含每个文本区的 `textCapacity` 建议字符数，坐标为 1280x720 参考图像素空间） |
-| `design.md` | 模板设计说明：版式语法、字体配对、配色语义与组合规则（`ppt_get_template_reference` 的返回内容） |
-| `pages/NN.jpg` | 逐页版式预览图（统一压缩到宽 560px、质量 70；`pages/01.jpg` 同时作为选择面板封面） |
-| `source-zh/` | 中文示例 PPTD 工程（`deck.pptd` 清单 + `pages/NN.page`，bounds 为 960x540 点空间），作为逐页布局参考 |
+| `metadata.json` | Metadados do modelo: nome, categoria, fontes, paleta e índice estrutural por página (inclui a contagem sugerida de caracteres `textCapacity` por área de texto, em pixels de referência 1280x720) |
+| `design.md` | Notas de design do modelo: sintaxe de layout, combinação de fontes, semântica de cores e regras de composição (retorno de `ppt_get_template_reference`) |
+| `pages/NN.jpg` | Prévia de layout por página (compactada para largura de 560px, qualidade 70; `pages/01.jpg` também serve como capa do painel de seleção) |
+| `source-zh/` | Projeto PPTD de exemplo em chinês (`deck.pptd` + `pages/NN.page`, com bounds no espaço de pontos 960x540), usado como referência de layout por página |
 
-## 分类
+## Categorias
 
-`academic` / `business` / `consulting` / `editorial` / `promotion` / `work` 六类，每类五支模板。
+`academic` / `business` / `consulting` / `editorial` / `promotion` / `work`: seis categorias, com cinco modelos em cada uma.
 
-每个分类有一支基础款，其余为该基础款的配色变体：沿用同一套版式骨架（`source-zh` 几何与字体配对完全一致），仅替换色板，`pages/` 预览图按变体色板重新渲染。变体由
-`scripts/generate-template-variant.mjs`（配置见 `scripts/template-variants.json`）从基础款派生，条目可用 `baseCategory` 指向别的分类里的基础款；流程与用法见该脚本头部注释。
+Cada categoria tem um modelo base; os demais são variantes de cor desse modelo:
+usam o mesmo esqueleto de layout (a geometria e as combinações de fontes de
+`source-zh` são idênticas), trocando apenas a paleta; as prévias em `pages/` são
+renderizadas novamente com a paleta da variante. As variantes são derivadas pelo
+`scripts/generate-template-variant.mjs` (configuração em `scripts/template-variants.json`)
+a partir do modelo base; uma entrada pode usar `baseCategory` para apontar ao
+modelo base de outra categoria. O fluxo e o uso estão nos comentários iniciais do script.
 
-## 几何版式族
+## Família de layouts geométricos
 
-除各分类原有的版式骨架外，`business/dsh-slate-grid`（灰阶网格）及其配色变体引入了一套独立的几何版式族：十二页分别取自开源的 16:9 结构版式资产（封面 / 章节 / 正文 / 三卡 / 双栏对比 / 时间线 / KPI / 图表 / 表格 / 金句 / 图文分栏 / 结尾），页面几何互不相同。该族由
-`scripts/import-layout-family.mjs`（配置见 `scripts/layout-family-imports.json`）从 `--layouts <资产根目录>` 抽取：SVG 中的 `data-pptx-placeholder` 槽转为可编辑文本元素，固定装饰转为形状与线条，像素坐标一次性换算到 `.page` 的 960x540 点空间（zones 保留 1280x720 参考像素）。`picture` / `chart` / `table` 槽在结构资产里没有数据，本版降级为保持同一矩形与 zone 的占位文本块（抽取脚本会打印降级清单）。
+Além dos esqueletos originais, `business/dsh-slate-grid` (Slate Grid) e suas
+variantes introduzem uma família geométrica independente: doze páginas com
+layouts estruturais 16:9 open source (capa / seção / conteúdo / três cartões /
+comparação em duas colunas / linha do tempo / KPI / gráfico / tabela / citação /
+conteúdo dividido / encerramento), cada uma com geometria diferente. A família é
+extraída por `scripts/import-layout-family.mjs` (configuração em
+`scripts/layout-family-imports.json`) de `--layouts <asset root>`: slots
+`data-pptx-placeholder` em SVG tornam-se elementos de texto editáveis, decoração
+fixa vira forma/linha e coordenadas em pixels são convertidas para o espaço de
+pontos 960x540 de `.page` (zones preserva os pixels de referência 1280x720).
+Slots `picture` / `chart` / `table` sem dados viram blocos de texto placeholder no
+mesmo retângulo e zone; o script de extração imprime a lista de degradações.
 
-## 来源与许可
+## Origem e licença
 
-内置模板库源自开源项目，MIT/Apache-2.0。模板重建为原生可编辑版式并补充中文示例与
-Office 字体配对；不含任何字体二进制文件。预览图为版式缩略图，不是输出背景。
-几何版式族的结构参考自开源版式资产（MIT/Apache-2.0）。
+A biblioteca de modelos incorporada deriva de projetos open source, sob MIT/Apache-2.0.
+Os modelos foram reconstruídos como layouts nativos editáveis e incluem exemplos
+em chinês e combinações de fontes Office; nenhum arquivo binário de fonte é incluído.
+As prévias são miniaturas de layout, não fundos da saída. A estrutura da família de
+layouts geométricos é baseada em assets de layout open source (MIT/Apache-2.0).

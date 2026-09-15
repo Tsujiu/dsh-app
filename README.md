@@ -5,66 +5,68 @@
 <h1 align="center">DSH APP</h1>
 
 <p align="center">
-  DeepSeek Harness（dsh）的品牌桌面客户端，由社区开发者维护。<br>
-  Windows / macOS / Linux，面向公开发布。
+  Cliente desktop de marca do DeepSeek Harness (`dsh`), mantido pela comunidade.<br>
+  Windows / macOS / Linux, voltado para lançamento público.
 </p>
 
 <p align="center">
-  <strong>简体中文</strong> · <a href="README.en.md">English</a> · <a href="README.pt-BR.md">Português (Brasil)</a>
+  <strong>Português (Brasil)</strong> · <a href="README.en.md">English</a>
 </p>
 
-外壳自带一份版本化的 dsh 运行时（更新/回滚自管理），在沙箱窗口渲染官方 dsh Web UI；
-品牌功能以 dsh 插件套件实现，不 fork 上游。分层、内核运行时布局、更新与回滚机制、打包等
-架构设计见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
+O shell traz seu próprio runtime dsh versionado (atualizações e reversão
+autogerenciadas) e renderiza a interface web oficial do dsh em uma janela com
+sandbox; os recursos de marca são implementados como um conjunto de plugins do
+dsh, sem fazer fork do upstream. O design em camadas, o layout do runtime do
+kernel, o mecanismo de atualização e reversão e o empacotamento estão em
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
-## 封装客户端功能
+## Recursos do cliente de marca
 
-DSH APP 是 **self-contained、no-fork** 的封装客户端：内核自托管（`userData/kernel/`，原子激活 + 回滚），
-功能全部以 dsh 插件套件（`plugins/`）叠加在上游 kernel 上，上游发布只是一个普通内核更新。
-当前插件能力：
+DSH APP é um cliente **autocontido e sem fork**: o kernel é autogerenciado
+(`userData/kernel/`, ativação atômica + reversão), e todos os recursos são um
+conjunto de plugins dsh (`plugins/`) sobre o kernel upstream. Assim, um
+lançamento upstream é apenas uma atualização comum do kernel. Capacidades atuais:
 
-| 功能 | 插件 | 实现位置 |
+| Recurso | Plugin | Implementação |
 |---|---|---|
-| 会话侧边栏（原生视图）：**Git 页**——按目录分组的变更列表、统一 diff 双行号、暂存/还原/提交、仓库文件列表、Git 图谱（点提交查看标题/正文/文件统计）。文件树页已退役：上游侧边栏原生提供工作区文件管理 | `@dsh-app/plugin-sidebar`（host + client 双面） | `plugins/plugin-sidebar/src/client/git-tab.tsx` |
-| 模型高级设置页：llm-pi-ai 模型级编辑器与整表管理（推理强度、输入模态、兼容开关）；声明推理强度自动填充兼容开关（`supportsDeveloperRole` false + `maxTokensField`，仅增量、不覆盖用户显式设置）；目录外模型的伴生路由迁移；models.dev 表单预填（直连失败自动回退 gh-proxy 镜像） | `@dsh-app/plugin-client-ui` | `plugins/plugin-client-ui/src/client/models-advanced/` |
-| 品牌主题与全中文 UI：`--dsw-alias-*` 令牌覆盖 | `@dsh-app/plugin-client-ui` | `plugins/plugin-client-ui/src/client.ts:58` |
-| 品牌鲸鱼背景：空闲静态帧、悬停时指针散开（指针离开即暂停渲染循环，滚动不卡顿）；主题感知对比度（亮色增强可读性、暗色低透明度水印）；悬停悬浮于输入框上方、活跃时放大并居中于会话列 | `@dsh-app/plugin-client-ui` | `plugins/plugin-client-ui/src/client/whale-background.ts` |
-| 跨会话记忆：`memory_save`/`memory_recall`/`memory_forget` 工具 + 系统提示注入（预算内最新优先），全局与项目记忆按会话 cwd 路由；设置页开关；后台提炼在会话静默 60 秒后直调模型回填要点（每次调用的 token 与耗时记录在案），策展清扫按冷却窗口与文件变更检测触发（同样直调模型） | `@dsh-app/plugin-memory` | `plugins/plugin-memory/src/{tools,routes,distiller,curator}.ts` |
-| 批量子代理编排：独立子任务并行派发给可继续的子代理，自适应并发门控（失败收缩、连续成功增长）、保留会话的逐项自动重试、按子代理标识恢复；`swarm` 工具 + `/swarm` 命令 | `@dsh-app/plugin-swarm` | `plugins/plugin-swarm/src/orchestrator.ts` |
-| 用量统计：余额卡（官方 deepseek providers、CNY 闲时/高峰双档计价、密钥不出主机）、每日使用热度图与趋势图；余额 5 分钟 TTL 缓存（single-flight，挂载静默刷新、点击卡片强制重查） | `@dsh-app/plugin-usage` | `plugins/plugin-usage/src/client/usage-section.tsx` |
-| 会话归档管理：按项目工作目录分组（可折叠、键盘支持）、两步删除确认；删除经 `resolveCurrentLog` 物理移除会话日志目录（迁移前格式的会话回退到按后端布局定位），归档记录保留为可见性栅栏、由面板「清理」回收 | `@dsh-app/plugin-archives` | `plugins/plugin-archives/src/client/archives-section.tsx` |
-| 快速文件搜索：`fffind`/`ffgrep`/`fff-glob` 工具，每个工作区一个共享内存索引，每次搜索限定在执行会话的工作区内 | `@dsh-app/plugin-fff`（host） | `plugins/plugin-fff/src/tools.ts` |
-| MCP 服务器管理：设置页增删改查、动态挂载/卸载，服务器工具以原生 `mcp__<server>__<tool>` 注册；读取时掩码密钥值 | `@dsh-app/plugin-mcp`（双面） | `plugins/plugin-mcp/src/client/mcp-section.tsx` |
-| 外部 hooks 桥：对 Claude Code / Codex 的 `hooks.json` 做设置页增删改查，挂载为生效的 hook 实例（拦截提示词、工具与轮次） | `@dsh-app/plugin-hooks`（双面） | `plugins/plugin-hooks/src/client/hooks-section.tsx` |
+| Barra lateral de conversa (visualizações nativas): **Git** — alterações agrupadas por diretório, diff unificado com números de linha duplos, stage/restore/commit, lista de arquivos do repositório e grafo do Git (clique em um commit para ver título/corpo/estatísticas). A árvore de arquivos foi aposentada: a barra lateral upstream fornece o gerenciamento do workspace nativamente | `@dsh-app/plugin-sidebar` (host + client) | `plugins/plugin-sidebar/src/client/git-tab.tsx` |
+| Página de configurações avançadas de modelos: editores por modelo e gerenciamento completo da lista llm-pi-ai (esforço de raciocínio, modalidades de entrada, switches de compatibilidade); declarar o esforço preenche automaticamente `supportsDeveloperRole` false + `maxTokensField`, apenas de forma aditiva; migração de rota companheira para modelos fora do catálogo; preenchimento de models.dev com fallback automático para espelho gh-proxy | `@dsh-app/plugin-client-ui` | `plugins/plugin-client-ui/src/client/models-advanced/` |
+| Tema de marca e interface totalmente em português (pt-BR): sobreposições de tokens `--dsw-alias-*` | `@dsh-app/plugin-client-ui` | `plugins/plugin-client-ui/src/client.ts:58` |
+| Fundo de baleia da marca: quadro estático em repouso, dispersão do ponteiro apenas ao passar o mouse (o loop pausa quando o ponteiro sai, sem engasgos na rolagem); contraste sensível ao tema; flutua sobre o compositor e, na fase ativa, amplia e centraliza na coluna de conversa | `@dsh-app/plugin-client-ui` | `plugins/plugin-client-ui/src/client/whale-background.ts` |
+| Memória entre sessões: ferramentas `memory_save`/`memory_recall`/`memory_forget` + injeção no prompt de sistema (mais recentes primeiro, dentro do orçamento), memória global e por projeto roteada pelo cwd da sessão; alternâncias na página de configurações; destilador em segundo plano preenche sessões silenciosas após 60 segundos por chamada direta ao modelo (tokens e duração registrados), com varreduras do curador acionadas por cooldown e alterações de arquivos | `@dsh-app/plugin-memory` | `plugins/plugin-memory/src/{tools,routes,distiller,curator}.ts` |
+| Orquestração de subagentes em lote: subtarefas independentes distribuídas a filhos paralelos continuáveis, com controle adaptativo de concorrência (reduz em falhas, cresce em sequências bem-sucedidas), nova tentativa automática por item em sessões preservadas e retomada por identificador do filho; ferramenta `swarm` + comando `/swarm` | `@dsh-app/plugin-swarm` | `plugins/plugin-swarm/src/orchestrator.ts` |
+| Estatísticas de uso: cartão de saldo (provedores oficiais deepseek, preços CNY em dois níveis, ocioso/pico, chave nunca sai do host), mapa de calor diário e gráfico de tendência; cache de saldo com TTL de 5 minutos (single-flight, atualização silenciosa na montagem, nova consulta forçada ao clicar no cartão) | `@dsh-app/plugin-usage` | `plugins/plugin-usage/src/client/usage-section.tsx` |
+| Gerenciador de arquivamento de sessões: agrupado pelo diretório de trabalho do projeto (recolhível, com teclado), confirmação de exclusão em duas etapas; exclusão remove fisicamente o diretório de log via `resolveCurrentLog` (sessões pré-migração usam o layout do backend como fallback), e o registro é mantido como barreira de visibilidade, recuperado pela ação de limpeza do painel | `@dsh-app/plugin-archives` | `plugins/plugin-archives/src/client/archives-section.tsx` |
+| Busca rápida de arquivos: ferramentas `fffind`/`ffgrep`/`fff-glob` sobre um índice compartilhado em memória por workspace, com cada busca limitada ao workspace da sessão em execução | `@dsh-app/plugin-fff` (host) | `plugins/plugin-fff/src/tools.ts` |
+| Gerenciador de servidores MCP: CRUD na página de configurações, montagem/desmontagem dinâmica, ferramentas registradas nativamente como `mcp__<server>__<tool>`; valores de chaves mascarados na leitura | `@dsh-app/plugin-mcp` (dual) | `plugins/plugin-mcp/src/client/mcp-section.tsx` |
+| Ponte de hooks externos: CRUD na página de configurações para `hooks.json` do Claude Code / Codex, montados como instâncias de hook ativas (interceptam prompts, ferramentas e turnos) | `@dsh-app/plugin-hooks` (dual) | `plugins/plugin-hooks/src/client/hooks-section.tsx` |
 
-套件接线（每次 server 启动自动完成，`src/main/brand-suite.ts`）：
+Conexão do conjunto (executada automaticamente a cada início do server, `src/main/brand-suite.ts`):
 
-1. **模块解析**：十个套件插件链接进 `$DSH_HOME/profiles/node_modules/@dsh-app/`（Windows 为 junction）；
-   开发源是仓库 `plugins/*`，生产源是激活内核里的 `app/node_modules/@dsh-app/*`。
-2. **加载器覆盖**：`plugins/dsh-app.patch.yml` 拷入 userData，经 `dsh web --patch` 注入十个套件插件条目
-   （应用在官方 bundle 层之后，last write wins，无需改上游 profile 模板）。
+1. **Resolução de módulos**: os plugins do conjunto são vinculados a `$DSH_HOME/profiles/node_modules/@dsh-app/` (junction no Windows); no desenvolvimento vêm de `plugins/*` deste repositório, e em produção de `app/node_modules/@dsh-app/*` do kernel ativo.
+2. **Overlay do loader**: `plugins/dsh-app.patch.yml` é copiado para userData e injetado por `dsh web --patch`, com entradas do conjunto aplicadas após as camadas do bundle oficial (last write wins, sem alterar o template de perfil upstream).
 
-两条接缝均**优雅降级**：内核缺少套件插件（例如回滚目标）时原样启动、无阻塞。
+Ambas as costuras **degradam graciosamente**: se o kernel não tiver os plugins do conjunto (por exemplo, um alvo de reversão), ele inicia como vanilla, sem bloqueio.
 
-## 快速开始（开发）
+## Início rápido (desenvolvimento)
 
-需要 Node.js 22+ 与 pnpm。开发内核 = 本地的 deepseek-harness checkout。
+Requer Node.js 22+ e pnpm. O kernel de desenvolvimento é o checkout local do deepseek-harness.
 
-前置（一次性）：
+Pré-requisitos (uma vez):
 
 ```powershell
-# 1. 本仓库旁有 deepseek-harness checkout（../deepseek-harness），
-#    并且已装好依赖、构建过 web 前端：
+# 1. Há um checkout irmão do deepseek-harness (../deepseek-harness),
+#    com dependências instaladas e o frontend web compilado:
 cd ../deepseek-harness
 pnpm install
 pnpm run build:web
 
-# 2. 安装外壳依赖
+# 2. Instalar dependências do shell
 cd ../dsh-app
 npm install
 ```
 
-启动（**注意：Windows PowerShell 不支持 `VAR=1 cmd` 语法**）：
+Inicialização (**observação: o Windows PowerShell não suporta a sintaxe `VAR=1 cmd`**):
 
 ```powershell
 # PowerShell
@@ -76,83 +78,69 @@ $env:DSH_APP_DEV="1"; npm start
 set DSH_APP_DEV=1 && npm start
 ```
 
-开发模式下外壳会在本地 checkout 里 spawn `pnpm dsh web`（随机空闲端口），
-不下载、不产生内核产物。dev 启动比生产版慢很多：pnpm + tsx 即时转译全部 TypeScript
-源码是主要开销；生产版直接 spawn 预编译的 `lib/bin.js`，秒级就绪。
+No modo de desenvolvimento, o shell executa `pnpm dsh web` no checkout local (porta livre aleatória), sem downloads nem artefatos de kernel. A inicialização dev é muito mais lenta que a de produção: pnpm + transpilação imediata de todo o TypeScript por tsx são o principal custo; em produção, executa diretamente o `lib/bin.js` pré-compilado e fica pronto em segundos.
 
-### 指定其他 checkout
+### Usar outro checkout
 
 ```powershell
 $env:DSH_APP_DEV="1"; $env:DSH_APP_DEV_RUNTIME="D:/codes/DSH-APP/deepseek-harness"; npm start
 ```
 
-### 开发环境的已知差异
+### Diferenças conhecidas entre desenvolvimento e produção
 
-| 项目 | 开发模式 | 生产模式 |
+| Item | Modo de desenvolvimento | Produção |
 |---|---|---|
-| 内核来源 | 本地 checkout（`pnpm dsh web`，tsx 即时编译） | `userData/kernel/` 预装运行时（直连 node 二进制） |
-| 启动速度 | 慢（10 秒级） | 快（2 秒级） |
-| 更新检查 | 跳过（钉在 checkout） | 每 6h 自动 + 托盘手动 |
+| Fonte do kernel | checkout local (`pnpm dsh web`, compilação imediata por tsx) | runtime pré-instalado em `userData/kernel/` (binário node direto) |
+| Velocidade de inicialização | lenta (cerca de 10 s) | rápida (cerca de 2 s) |
+| Verificação de atualizações | ignorada (fixada no checkout) | automática a cada 6 h + manual pela bandeja |
 
-## 内核更新系统
+## Sistema de atualização do kernel
 
-应用自带版本化内核（`userData/kernel/`），不依赖系统是否安装过 dsh。更新链路：
-解析 npm registry 的 dist-tag 版本 → 从 GitHub Releases 下载运行时产物 → 与附带的
-sha512 比对校验 → 原子激活（旧版保留为 `previous`）→ 连续启动失败 2 次自动回退上一版。
-内核运行时布局与更新流程详见 [ARCHITECTURE.md §4–5](docs/ARCHITECTURE.md)。
+O aplicativo traz um kernel versionado (`userData/kernel/`) e não depende de um dsh instalado no sistema. Fluxo: resolver a versão pela dist-tag do npm registry → baixar o artefato de runtime do GitHub Releases → verificar o sha512 anexado → ativar atomicamente (a versão antiga fica como `previous`) → reverter automaticamente após 2 falhas consecutivas de inicialização. Consulte [ARCHITECTURE.md §4–5](docs/ARCHITECTURE.md) para o layout e o fluxo.
 
-**内置运行时漂移检测**：升级安装时，如果新版本内置的运行时内容与磁盘上同名内核目录
-不一致（例如套件新增了插件），启动时会自动检测（sha512 对比 + 版本守卫）并重新激活
-内置运行时——不会静默沿用旧内容导致插件缺失；在线更新过更新的内核也不会被降级覆盖。
+**Detecção de deriva do runtime embutido**: durante uma atualização, se o conteúdo do runtime embutido diferir do diretório do kernel com o mesmo nome no disco (por exemplo, se o conjunto ganhou um plugin), a inicialização detecta isso (comparação sha512 + proteção de versão) e reativa o runtime embutido. Conteúdo antigo nunca perde plugins silenciosamente, e um kernel atualizado online nunca é sobrescrito por downgrade.
 
-### 应用（外壳）更新
+### Atualizações do aplicativo (shell)
 
-Windows 使用自定义链路；macOS / Linux 使用 `electron-updater`。
+O Windows usa um fluxo personalizado; macOS / Linux usam `electron-updater`.
 
-1. 检测：`github.com/<owner>/<repo>/releases/latest/download/latest.yml`（镜像回退）
-2. 下载：按架构选择安装包，官方直链优先、ghfast.top / gh-proxy.com 依次回退
-3. 校验：sha512 与 latest.yml 比对，镜像永远替换不了内容
-4. 安装：**可视化安装向导**——点击「立即安装」后关闭应用、打开与首次安装相同的
-   NSIS 向导（安装进度全程可见），完成后自动启动应用，安装包自动删除（取消安装也会删除）
+1. Detectar: `github.com/<owner>/<repo>/releases/latest/download/latest.yml` (fallback de espelho)
+2. Baixar: escolher o instalador pela arquitetura, priorizando a URL oficial e depois ghfast.top / gh-proxy.com
+3. Verificar: comparar sha512 com latest.yml; um espelho nunca substitui o conteúdo
+4. Instalar: **assistente de instalação visível** — "instalar agora" encerra o aplicativo e abre o mesmo assistente NSIS da primeira instalação (todo o progresso fica visível); ao terminar, o aplicativo reinicia e o instalador é excluído (também ao cancelar)
 
-### 中国大陆网络适配（不挂梯子也能更新）
+### Adaptação de rede na China continental (atualizações sem VPN)
 
-两条更新链路都有回退链，默认开箱即用：
+Ambos os fluxos têm cadeias de fallback e funcionam de imediato:
 
-| 链路 | 官方源 | 回退 | 覆盖方式 |
+| Fluxo | Fonte oficial | Fallback | Substituição |
 |---|---|---|---|
-| 版本解析 | `registry.npmjs.org` | `registry.npmmirror.com` | `DSH_APP_NPM_REGISTRIES`（逗号分隔）或 `NPM_CONFIG_REGISTRY` |
-| 产物下载 | `github.com` Release | `ghfast.top`、`gh-proxy.com`（依次尝试） | `DSH_APP_GITHUB_MIRRORS`（逗号分隔前缀；置空 = 关闭镜像） |
+| Resolução de versão | `registry.npmjs.org` | `registry.npmmirror.com` | `DSH_APP_NPM_REGISTRIES` (separadas por vírgula) ou `NPM_CONFIG_REGISTRY` |
+| Download de artefato | Release do `github.com` | `ghfast.top`, `gh-proxy.com` (em ordem) | `DSH_APP_GITHUB_MIRRORS` (prefixos separados por vírgula; vazio = espelhos desligados) |
 
-安全模型：**sha512 元数据优先从官方 GitHub 获取**，镜像只在大文件下载阶段参与，
-且每个下载候选（官方 + 每个镜像）都用同一份可信 sha512 校验——镜像被劫持也换不掉内容。
+Modelo de segurança: **os metadados sha512 são obtidos primeiro do GitHub oficial**; os espelhos só participam do download de arquivos grandes, e cada candidato (oficial + cada espelho) é verificado com o mesmo sha512 confiável.
 
-连通性自检（在目标网络环境跑一遍）：
+Autoverificação de conectividade (execute uma vez no ambiente de rede de destino):
 
 ```powershell
 node scripts/probe-mirror.mjs
 ```
 
-## 桌面化适配
+## Adaptação de desktop
 
-外壳通过运行时注入为 Web UI 补桌面体验，harness 源码零改动：窗口拖拽、原生窗口按钮
-让位、顶栏配色实时同步、全中文 UI。品牌功能（侧边栏、模型页等）通过上面的
-插件套件以 `--patch` 覆盖与 slot 注入实现，同等零上游改动。注入实现细节见
-[ARCHITECTURE.md §2](docs/ARCHITECTURE.md)。
+O shell injeta recursos de desktop na Web UI em runtime, sem alterar o código-fonte do harness: arrastar a janela, espaço para botões nativos, sincronização em tempo real da cor da barra superior e UI totalmente localizada em pt-BR. Os recursos de marca (barra lateral, página de modelos etc.) também usam o conjunto de plugins, com overlays `--patch` e injeções de slot, sem alterações no upstream. Veja [ARCHITECTURE.md §2](docs/ARCHITECTURE.md).
 
-## 构建分发
+## Compilação e distribuição
 
 ```sh
-npm run dist:win     # NSIS 安装器（x64 + arm64）
-npm run dist:mac     # dmg + zip（x64 + arm64，公证走环境变量）
-npm run dist:linux   # AppImage + deb（x64 + arm64）
+npm run dist:win     # instalador NSIS (x64 + arm64)
+npm run dist:mac     # dmg + zip (x64 + arm64; notarização via variáveis de ambiente)
+npm run dist:linux   # AppImage + deb (x64 + arm64)
 ```
 
-应用图标：`resources/icon.png` 当前为占位品牌图标，发布前请替换为正式图标；
-`npm run icon:gen` 生成占位图标，`npm run icon:build` 由它裁剪多尺寸 PNG + ICO（需 Pillow）。
+Ícone do aplicativo: `resources/icon.png` é um ícone de marca placeholder; substitua-o pelo ícone final antes do lançamento. `npm run icon:gen` gera o placeholder, e `npm run icon:build` deriva PNGs de vários tamanhos + ICO (requer Pillow).
 
-内核运行时产物由 `scripts/build-runtime.mjs` 构建（每个 platform/arch 一份），
-CI 工作流发布到 GitHub Releases：
+O artefato de runtime do kernel é compilado por `scripts/build-runtime.mjs` (um por platform/arch), e o workflow de CI o publica no GitHub Releases:
 
 ```sh
 node scripts/build-runtime.mjs win32 x64 0.1.0-rc.8

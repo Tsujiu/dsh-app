@@ -1,6 +1,6 @@
-# Citron Poster / 柠黄招贴
+# Citron Poster / Cartaz cítrico
 
-Colorway variant of the bundled Broadside / 橙黑宣言 template: the same twelve editable layouts and geometry, rebuilt around ink-black with a single citron accent. The base edition is adapted from Zara Zhang's Broadside, commit e5e204fb1f3b06290846e7dcd7aceddabeceec8c, MIT.
+Colorway variant of the bundled Broadside / Manifesto laranja e preto template: the same twelve editable layouts and geometry, rebuilt around ink-black with a single citron accent. The base edition is adapted from Zara Zhang's Broadside, commit e5e204fb1f3b06290846e7dcd7aceddabeceec8c, MIT.
 
 ## Typography
 
@@ -50,4 +50,4 @@ End an evidence page with a concise interpretation, bounded recommendation or op
 Inspect a rendered page, not just its bounding boxes: check the reading order, line endings, label collisions, chart contrast and the gap above the footer. Keep labels clear of rules and markers. Use native editable text and geometry. Fictional reference data must be replaced by verified user material or visibly marked as an example.
 All charts and diagrams are native editable vectors. Example figures are illustrative, not reported facts. Retain a 48 pt outer margin and use 16:9, 960 × 540 pt.
 
-Copyright (c) 2026 Zara Zhang. DSH adaptation 2026-09-06; Citron Poster colorway variant 2026-09-12. Derived from the bundled 橙黑宣言 template (MIT); see its design document for the pinned upstream source.
+Copyright (c) 2026 Zara Zhang. DSH adaptation 2026-09-06; Citron Poster colorway variant 2026-09-12. Derived from the bundled Manifesto laranja e preto template (MIT); see its design document for the pinned upstream source.

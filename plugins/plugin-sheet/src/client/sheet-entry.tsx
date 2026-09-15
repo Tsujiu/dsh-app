@@ -41,7 +41,7 @@ import { applySkillReference, removeSkillReference, skillReferenceHint } from '.
 export type SessionSource = HostObservable<StandardSourceBinding>
 
 /** Shown while a toggle waits for the session it will be applied to. */
-const PENDING_NOTICE = '将在会话开始后生效'
+const PENDING_NOTICE = 'Aplicado quando a sessão começar'
 
 /** Small inline spreadsheet glyph for the capsule's leading cluster. */
 function GridIcon(): ReactNode {

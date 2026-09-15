@@ -1,6 +1,6 @@
-# Indigo Study / 靛蓝学记
+# Indigo Study / Estudo índigo
 
-Colorway variant of the bundled Slate Grid / 灰阶网格 template: the same twelve page geometries, panels and slot structure, rebuilt around indigo ink on cool ivory paper. The base edition is adapted from open-source layout assets (MIT/Apache-2.0): a structure-only 16:9 geometry family rebuilt as a native, editable twelve-page template. 结构参考自开源版式资产（MIT/Apache-2.0）。This native edition re-authors the slot geometry and Chinese examples; it is not a copy of any upstream deck.
+Colorway variant of the bundled Slate Grid / Grade em tons de cinza template: the same twelve page geometries, panels and slot structure, rebuilt around indigo ink on cool ivory paper. The base edition is adapted from open-source layout assets (MIT/Apache-2.0): a structure-only 16:9 geometry family rebuilt as a native, editable twelve-page template. Estrutura baseada em assets de layout open source (MIT/Apache-2.0)。This native edition re-authors the slot geometry and Chinese examples; it is not a copy of any upstream deck.
 
 ## Typography
 
@@ -12,18 +12,18 @@ Layout examples live in source-zh/. Preview language does not select the languag
 
 An indigo, structure-first presentation system on ivory (#f2f4fb): one soft panel tint (#e1e6f6), one hairline border (#c6cce0), one rail tone (#bfc5da) and one ink (#1b2140) with a single indigo accent (#3b4fa8). The geometry family is drawn from authored 16:9 page structures rather than one skeleton recolored many times: a left-rail cover, a full-width panel page, three equal cards, a two-column comparison with a center rule, a horizontal timeline with node circles, a four-card KPI row over an evidence panel, a chart-and-insight split, a table-and-summary split, a hero statement field, an editorial split, a section header with an anchor circle and a closing page. Corner radii step 2/4/12/16 px by element size; every panel is filled and hairlined, never outlined in the accent.
 
-1. 封面 (cover)
-2. 章节页 (section)
-3. 章节导读 (content)
-4. 三卡并列 (grid)
-5. 双栏对比 (comparison)
-6. 四步时间轴 (process)
-7. 指标总览 (data)
-8. 图表洞察 (data)
-9. 指标对照表 (table)
-10. 金句页 (quote)
-11. 图文分栏 (content)
-12. 结尾页 (closing)
+1. Capa (cover)
+2. Página de seção (section)
+3. Introdução do capítulo (content)
+4. Três cartões lado a lado (grid)
+5. Comparação em duas colunas (comparison)
+6. Linha do tempo em quatro etapas (process)
+7. Visão geral dos indicadores (data)
+8. Insights do gráfico (data)
+9. Tabela comparativa de indicadores (table)
+10. Página de citação (quote)
+11. Conteúdo dividido (content)
+12. Encerramento (closing)
 
 ## Expanded composition rules
 
@@ -49,4 +49,4 @@ Inspect a rendered page, not just its bounding boxes: check the reading order, l
 
 All layout geometry is native and editable. Example figures are illustrative, not reported facts. Retain a 48 pt outer margin and use 16:9, 960 × 540 pt.
 
-结构参考自开源版式资产（MIT/Apache-2.0）。
+Estrutura baseada em assets de layout open source (MIT/Apache-2.0).

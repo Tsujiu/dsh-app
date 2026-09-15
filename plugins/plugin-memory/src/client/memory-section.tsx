@@ -34,10 +34,10 @@ function projectTitle(project: MemoryProjectSummary): string {
   return parts[parts.length - 1] ?? project.slug
 }
 
-/** Backend + token suffix for one distill trace, e.g. ` · 直调 1.2k tokens`. */
+/** Backend + token suffix for one distill trace, e.g. ` · chamada direta 1.2k tokens`. */
 function formatBackend(item: MemoryDistillActivity): string {
   if (item.backend === undefined) return ''
-  const channel = item.backend === 'direct' ? '直调' : '子代理'
+  const channel = item.backend === 'direct' ? 'chamada direta' : 'subagente'
   if (item.tokens === undefined) return ` · ${channel}`
   const tokens = item.tokens >= 1000 ? `${(item.tokens / 1000).toFixed(1)}k` : String(item.tokens)
   return ` · ${channel} ${tokens} tokens`
@@ -74,18 +74,18 @@ function excerpt(text: string): string {
 /** Dialog heading for the armed action. */
 function confirmTitle(state: ConfirmState | null): string {
   if (state === null) return ''
-  if (state.kind === 'clear') return state.scope === 'global' ? '清空全局记忆' : '删除项目记忆'
-  return state.pinned ? '删除已固定的条目' : '删除该条记忆'
+  if (state.kind === 'clear') return state.scope === 'global' ? 'Limpar memória global' : 'Excluir memória do projeto'
+  return state.pinned ? 'Excluir item fixado' : 'Excluir esta memória'
 }
 
 /** Dialog body for the armed action. */
 function confirmMessage(state: ConfirmState | null): string {
   if (state === null) return ''
   if (state.kind === 'clear') {
-    return `即将删除${state.scope === 'global' ? '全局记忆' : `项目「${state.title}」的记忆`}（${String(state.entries)} 条），删除后不可恢复。`
+    return `A memória ${state.scope === 'global' ? 'global' : `do projeto "${state.title}"`} será excluída (${String(state.entries)} itens); essa ação não pode ser desfeita.`
   }
-  const where = state.scope === 'global' ? '全局记忆' : '项目记忆'
-  return `即将从${where}中删除这一条：\n「${excerpt(state.text)}」\n删除后不可恢复。`
+  const where = state.scope === 'global' ? 'memória global' : 'memória do projeto'
+  return `Este item será excluído da ${where}:\n"${excerpt(state.text)}"\nEssa ação não pode ser desfeita.`
 }
 
 export function MemorySection(): ReactNode {
@@ -128,7 +128,7 @@ export function MemorySection(): ReactNode {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ enabled: next }),
       })
-      setNotice(next ? '已启用：新会话将注入记忆，模型可主动记录' : '已禁用：新会话不再注入记忆，保存工具将拒绝写入')
+      setNotice(next ? 'Ativado: novas sessões receberão memórias e o modelo poderá registrá-las' : 'Desativado: novas sessões não receberão memórias e a ferramenta de salvamento recusará gravações')
       await load()
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : String(failure))
@@ -150,7 +150,7 @@ export function MemorySection(): ReactNode {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ distill: next }),
       })
-      setNotice(next ? '已开启后台提炼：会话静默 1 分钟后，新增内容足够多时补记项目记忆' : '已关闭后台提炼：仅保留对话中的即时记录')
+      setNotice(next ? 'Refinamento em segundo plano ativado: após 1 minuto de silêncio, conteúdo novo suficiente será salvo na memória do projeto' : 'Refinamento em segundo plano desativado: somente registros imediatos da conversa serão mantidos')
       await load()
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : String(failure))
@@ -171,7 +171,7 @@ export function MemorySection(): ReactNode {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: text, pinned, ...(scope === 'project' ? { scope: 'project', slug } : {}) }),
       })
-      setNotice(pinned ? '已固定：该条目将始终随会话注入，不再受注入长度截断影响' : '已取消固定')
+       setNotice(pinned ? 'Fixado: este item sempre será incluído na sessão e não será afetado pelo limite de injeção' : 'Fixação removida')
       if (scope === 'project') await loadProjectRows(slug)
       else await load()
     } catch (failure) {
@@ -189,7 +189,7 @@ export function MemorySection(): ReactNode {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ match: text, ...(scope === 'project' ? { scope: 'project', slug } : {}) }),
     })
-    setNotice(result.forgotten > 0 ? `已删除 ${String(result.forgotten)} 条记忆` : '没有找到匹配的条目')
+    setNotice(result.forgotten > 0 ? `${String(result.forgotten)} memórias excluídas` : 'Nenhum item correspondente foi encontrado')
     if (scope === 'project') { await loadProjectRows(slug); await load() }
     else await load()
   }, [load, loadProjectRows])
@@ -225,7 +225,7 @@ export function MemorySection(): ReactNode {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(target.scope === 'global' ? { scope: 'global' } : { scope: 'project', slug: target.slug }),
         })
-        setNotice(target.scope === 'global' ? '已清空全局记忆' : `已删除项目「${target.title}」的记忆`)
+        setNotice(target.scope === 'global' ? 'Memória global limpa' : `Memória do projeto "${target.title}" excluída`)
         await load()
       } else {
         await runForget(target.scope, target.slug, target.text)
@@ -240,11 +240,11 @@ export function MemorySection(): ReactNode {
 
   return (
     <div className="dshm_section">
-      <p className="dshm_title">会话记忆</p>
+      <p className="dshm_title">Memória da sessão</p>
       <p className="dshm_hint">
-        模型在对话中主动记录长期有效的信息（跨会话持久保存），每个新会话自动带入。
-        全局记忆（偏好与习惯）对所有项目生效，只能由 AI 主动保存或你手写；项目记忆（决策/约定/教训）仅注入该项目的会话，由后台提炼补记，互不串扰。
-        记忆不含密钥等敏感信息；文件为纯文本，可手动编辑。
+         O modelo registra ativamente informações duradouras durante a conversa (persistentes entre sessões), e cada nova sessão as recebe automaticamente.
+         A memória global (preferências e hábitos) vale para todos os projetos e só pode ser salva pelo AI ou escrita por você; a memória do projeto (decisões, acordos e aprendizados) é injetada apenas nas sessões desse projeto e complementada pelo refinamento em segundo plano, sem mistura entre projetos.
+         As memórias não contêm chaves nem outros dados sensíveis; o arquivo é texto puro e pode ser editado manualmente.
       </p>
 
       {error !== undefined ? <div className="dshm_banner" role="alert">{error}</div> : null}
@@ -256,20 +256,20 @@ export function MemorySection(): ReactNode {
         open={confirming !== null}
         title={confirmTitle(confirming)}
         message={confirmMessage(confirming)}
-        confirmLabel="删除"
+         confirmLabel="Excluir"
         busy={busy}
         onConfirm={() => { void onConfirm() }}
         onClose={() => { setConfirming(null) }}
       />
 
       <div className="dshm_toggleRow">
-        <span className="dshm_toggleLabel">启用会话记忆（{status === null ? '…' : status.enabled ? '已启用' : '已禁用'}）</span>
+         <span className="dshm_toggleLabel">Ativar memória da sessão ({status === null ? '…' : status.enabled ? 'ativada' : 'desativada'})</span>
         <button
           type="button"
           className="dshm_toggle"
           role="switch"
           aria-checked={status?.enabled ?? false}
-          aria-label="启用会话记忆"
+           aria-label="Ativar memória da sessão"
           disabled={busy || status === null}
           onClick={() => { void onToggle() }}
         />
@@ -277,15 +277,15 @@ export function MemorySection(): ReactNode {
 
       <div className="dshm_toggleRow">
         <span className="dshm_toggleLabel">
-          后台自动提炼（{status === null ? '…' : status.distill ? '已开启' : '已关闭'}）
-          <span className="dshm_toggleHint">会话静默 1 分钟后，且新增内容足够多时，后台补记遗漏的项目记忆（直接调用模型，低消耗）</span>
+           Refinamento automático em segundo plano ({status === null ? '…' : status.distill ? 'ativado' : 'desativado'})
+           <span className="dshm_toggleHint">Após 1 minuto de silêncio e conteúdo novo suficiente, o segundo plano registra memórias de projeto esquecidas (chamada direta ao modelo, baixo consumo)</span>
         </span>
         <button
           type="button"
           className="dshm_toggle"
           role="switch"
           aria-checked={status?.distill ?? false}
-          aria-label="后台自动提炼"
+           aria-label="Refinamento automático em segundo plano"
           disabled={busy || status === null || (status !== null && !status.enabled)}
           onClick={() => { void onToggleDistill() }}
         />
@@ -293,19 +293,19 @@ export function MemorySection(): ReactNode {
 
       <div className="dshm_cards">
         <div className="dshm_card">
-          <div className="dshm_cardLabel">全局记忆条目</div>
+           <div className="dshm_cardLabel">Itens de memória global</div>
           <div className="dshm_cardValue">{status === null ? '…' : String(status.entries)}</div>
         </div>
         <div className="dshm_card">
-          <div className="dshm_cardLabel">全局占用</div>
+           <div className="dshm_cardLabel">Uso global</div>
           <div className="dshm_cardValue">{status === null ? '…' : fmtBytes(status.sizeBytes)}</div>
         </div>
         <div className="dshm_card">
-          <div className="dshm_cardLabel">记忆项目数</div>
+           <div className="dshm_cardLabel">Projetos com memória</div>
           <div className="dshm_cardValue">{status === null ? '…' : String(status.projects.length)}</div>
         </div>
         <div className="dshm_card">
-          <div className="dshm_cardLabel">全局记忆文件</div>
+           <div className="dshm_cardLabel">Arquivo de memória global</div>
           <div className="dshm_cardPath" title={status?.filePath ?? ''}>{status === null ? '…' : status.filePath}</div>
         </div>
       </div>
@@ -313,12 +313,12 @@ export function MemorySection(): ReactNode {
       {status !== null && status.distill && status.activity.length > 0
         ? (
           <div className="dshm_projects">
-            <div className="dshm_projectsTitle">最近提炼</div>
-            <div className="dshm_hint">后台提炼在会话静默 1 分钟后运行，且需累计足够新内容；它只写项目记忆（直接调用模型，低消耗）。以下为最近记录（时间 · 来源会话 · 保存条数 · 通道）。</div>
+             <div className="dshm_projectsTitle">Refinamentos recentes</div>
+             <div className="dshm_hint">O refinamento roda após 1 minuto de silêncio e conteúdo novo suficiente; ele grava apenas memória do projeto (chamada direta ao modelo, baixo consumo). Abaixo estão os registros recentes (hora · sessão de origem · itens salvos · canal).</div>
             {status.activity.slice(0, activityExpanded ? status.activity.length : ACTIVITY_PREVIEW).map((item: MemoryDistillActivity) => (
               <div key={`${item.at}-${item.session}`} className="dshm_activityRow">
                 <span className="dshm_activityTime">{fmtTime(item.at)}</span>
-                <span className="dshm_activityMeta">会话 {item.session} · {item.saved === 0 ? '无新条目' : `保存 ${String(item.saved)} 条`}{formatBackend(item)}</span>
+                <span className="dshm_activityMeta">Sessão {item.session} · {item.saved === 0 ? 'nenhum item novo' : `${String(item.saved)} itens salvos`}{formatBackend(item)}</span>
               </div>
             ))}
             {status.activity.length > ACTIVITY_PREVIEW
@@ -329,7 +329,7 @@ export function MemorySection(): ReactNode {
                   aria-expanded={activityExpanded}
                   onClick={() => { setActivityExpanded(expanded => !expanded) }}
                 >
-                  {activityExpanded ? '收起' : `查看全部（${String(status.activity.length)} 条）`}
+                   {activityExpanded ? 'Recolher' : `Ver tudo (${String(status.activity.length)} itens)`}
                 </button>
               )
               : null}
@@ -340,8 +340,8 @@ export function MemorySection(): ReactNode {
       {status !== null && status.globalList.length > 0
         ? (
           <div className="dshm_projects">
-            <div className="dshm_projectsTitle">全局条目</div>
-            <div className="dshm_hint">固定（📌）的条目始终随会话注入，不受注入长度截断影响；未固定的按“每分类保留最新”挑选。列表按保存时间倒序，默认只显示最近 {String(ENTRIES_PREVIEW)} 条。</div>
+             <div className="dshm_projectsTitle">Itens globais</div>
+             <div className="dshm_hint">Itens fixados (📌) sempre são incluídos na sessão e não sofrem com o limite de injeção; os demais são escolhidos mantendo o item mais recente de cada categoria. A lista é ordenada do mais recente para o mais antigo e mostra por padrão os últimos {String(ENTRIES_PREVIEW)} itens.</div>
             {[...status.globalList].reverse().slice(0, entriesExpanded ? status.globalList.length : ENTRIES_PREVIEW).map((entry, index) => (
               <div key={`${entry.text}-${index}`} className="dshm_entryRow">
                 <span className="dshm_entryText">{entry.text}</span>
@@ -349,17 +349,17 @@ export function MemorySection(): ReactNode {
                   type="button"
                   className={entry.pinned ? 'dshm_pinBtn dshm_pinBtnOn' : 'dshm_pinBtn'}
                   aria-pressed={entry.pinned}
-                  aria-label={entry.pinned ? '取消固定该条目' : '固定该条目'}
+                   aria-label={entry.pinned ? 'Remover fixação deste item' : 'Fixar este item'}
                   disabled={busy}
                   onClick={() => { void onPin('global', '', entry.text, !entry.pinned) }}
-                >{entry.pinned ? '已固定' : '固定'}</button>
+                 >{entry.pinned ? 'Fixado' : 'Fixar'}</button>
                 <button
                   type="button"
                   className="dshm_button dshm_buttonDanger"
-                  aria-label="删除该条目"
+                   aria-label="Excluir este item"
                   disabled={busy}
                   onClick={() => { setConfirming({ kind: 'forget', scope: 'global', slug: '', text: entry.text, pinned: entry.pinned }) }}
-                >删除</button>
+                 >Excluir</button>
               </div>
             ))}
             {status.globalList.length > ENTRIES_PREVIEW
@@ -370,7 +370,7 @@ export function MemorySection(): ReactNode {
                   aria-expanded={entriesExpanded}
                   onClick={() => { setEntriesExpanded(expanded => !expanded) }}
                 >
-                  {entriesExpanded ? '收起' : `查看全部（${String(status.globalList.length)} 条）`}
+                   {entriesExpanded ? 'Recolher' : `Ver tudo (${String(status.globalList.length)} itens)`}
                 </button>
               )
               : null}
@@ -383,40 +383,40 @@ export function MemorySection(): ReactNode {
           type="button"
           className="dshm_button dshm_buttonDanger"
           disabled={busy || status === null || status.entries === 0}
-          onClick={() => { setConfirming({ kind: 'clear', scope: 'global', slug: '', title: '全局', entries: status?.entries ?? 0 }) }}
-        >清空全局记忆</button>
+          onClick={() => { setConfirming({ kind: 'clear', scope: 'global', slug: '', title: 'global', entries: status?.entries ?? 0 }) }}
+         >Limpar memória global</button>
       </div>
 
       {status !== null && status.projects.length > 0
         ? (
           <div className="dshm_projects">
-            <div className="dshm_projectsTitle">项目记忆</div>
-            <div className="dshm_hint">点击“条目”展开该项目的记忆明细，可逐条固定或删除；“删除”移除整个项目的记忆目录。删除条目与删除项目都需确认。</div>
+             <div className="dshm_projectsTitle">Memória dos projetos</div>
+             <div className="dshm_hint">Clique em “Itens” para expandir os detalhes da memória do projeto e fixar ou excluir itens individualmente; “Excluir” remove todo o diretório de memória do projeto. A exclusão de itens e projetos exige confirmação.</div>
             {status.projects.map(project => (
               <div key={project.slug} className="dshm_projectBlock">
                 <div className="dshm_projectRow">
                   <span className="dshm_projectName" title={project.cwd === '' ? project.slug : project.cwd}>{projectTitle(project)}</span>
-                  <span className="dshm_projectMeta">{String(project.entries)} 条 · {fmtBytes(project.sizeBytes)}</span>
+                   <span className="dshm_projectMeta">{String(project.entries)} itens · {fmtBytes(project.sizeBytes)}</span>
                   <button
                     type="button"
                     className="dshm_button"
                     aria-expanded={openSlug === project.slug}
                     disabled={busy}
                     onClick={() => { void onToggleProject(project) }}
-                  >{openSlug === project.slug ? '收起' : '条目'}</button>
+                   >{openSlug === project.slug ? 'Recolher' : 'Itens'}</button>
                   <button
                     type="button"
                     className="dshm_button dshm_buttonDanger"
                     disabled={busy}
                     onClick={() => { setConfirming({ kind: 'clear', scope: 'project', slug: project.slug, title: projectTitle(project), entries: project.entries }) }}
-                  >删除</button>
+                   >Excluir</button>
                 </div>
                 {openSlug === project.slug
                   ? (
                     projectRows === null || projectRows.slug !== project.slug
-                      ? <div className="dshm_hint">加载中…</div>
+                       ? <div className="dshm_hint">Carregando…</div>
                       : projectRows.entries.length === 0
-                        ? <div className="dshm_hint">（暂无条目）</div>
+                         ? <div className="dshm_hint">(Nenhum item)</div>
                         : [...projectRows.entries].reverse().map((entry, index) => (
                           <div key={`${entry.text}-${index}`} className="dshm_entryRow">
                             <span className="dshm_entryText">{entry.text}</span>
@@ -424,17 +424,17 @@ export function MemorySection(): ReactNode {
                               type="button"
                               className={entry.pinned ? 'dshm_pinBtn dshm_pinBtnOn' : 'dshm_pinBtn'}
                               aria-pressed={entry.pinned}
-                              aria-label={entry.pinned ? '取消固定该条目' : '固定该条目'}
+                               aria-label={entry.pinned ? 'Remover fixação deste item' : 'Fixar este item'}
                               disabled={busy}
                               onClick={() => { void onPin('project', project.slug, entry.text, !entry.pinned) }}
-                            >{entry.pinned ? '已固定' : '固定'}</button>
+                             >{entry.pinned ? 'Fixado' : 'Fixar'}</button>
                             <button
                               type="button"
                               className="dshm_button dshm_buttonDanger"
-                              aria-label="删除该条目"
+                               aria-label="Excluir este item"
                               disabled={busy}
                               onClick={() => { setConfirming({ kind: 'forget', scope: 'project', slug: project.slug, text: entry.text, pinned: entry.pinned }) }}
-                            >删除</button>
+                             >Excluir</button>
                           </div>
                         ))
                   )

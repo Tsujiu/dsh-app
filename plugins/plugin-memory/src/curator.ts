@@ -100,7 +100,7 @@ export function buildCuratePrompt(input: string, pinned: readonly string[] = [])
     '  restated on different dates, or one superseding the other). One refreshed entry replaces them all.',
     '- delete: entries that are stale (already superseded), wrong, or no longer relevant.',
     '- delete: entries that are work logs rather than reusable knowledge — reports of what a',
-    '  session did ("X 已完成", "修复全落地", "审查后…"), file-by-file change lists, commit',
+    '  session did ("X completed", "fix fully applied", "after review…"), file-by-file change lists, commit',
     '  ids, task summaries. Keep only what a future session could act on.',
     '- Prefer keeping the SURVIVING entry when one strictly supersedes another: delete the stale one.',
     '- NEVER mention credentials (API keys, tokens, passwords) — not even in a rewrite.',
@@ -185,7 +185,7 @@ export class MemoryCurator {
    * The save trigger: sweep now when the cooldown has elapsed, otherwise
    * coalesce into the pending trailing sweep. Never throws.
    *
-   * Gated by `isDistillEnabled()` — the user-facing 后台自动提炼 toggle
+    * Gated by `isDistillEnabled()` — the user-facing background refinement toggle
    * means "no background model work", so it stops the curator too, not just
    * the distiller. Keeping one gate for every background pass is what makes
    * flipping it cost-predictable; a save-triggered sweep slipping through

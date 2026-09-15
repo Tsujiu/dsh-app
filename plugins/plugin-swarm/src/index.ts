@@ -176,14 +176,13 @@ const SWARM_SECTION_TEXT =
  * parallelizable work inline.
  */
 const SWARM_COMMAND_DIRECTIVE =
-  '[swarm 模式] 用户已明确要求用并行子代理执行以下任务。在采取任何其他行动（包括阅读文件、加载技能、'
-  + '编写代码）之前，你必须先调用 swarm 工具：将任务拆分为相互独立、互不重叠的子任务，'
-  + '在 prompt_template 中用 {{item}} 占位符书写共享指令，items 列出各子任务的差异部分；'
-  + '等待全部子任务完成后，将结果汇总为最终答案。禁止自己逐个完成本可并行的子任务。'
-  + '只有当任务本质上是串行的、确实无法安全并行化时，才简要说明原因并按普通方式执行。'
+  '[swarm mode] The user explicitly requested parallel subagents for the following task. Before taking any other action (including reading files, loading skills, or writing code), you MUST call the swarm tool: split the task into independent, non-overlapping subtasks, '
+  + 'put shared instructions in prompt_template using the literal {{item}} placeholder, and put each subtask-specific part in items; '
+  + 'wait for all subtasks to finish, then summarize the results as the final answer. Do not perform sequentially work that can be parallelized. '
+  + 'Only when the task is inherently sequential and cannot safely be parallelized should you briefly explain why and proceed normally.'
 
 const SWARM_COMMAND_USAGE =
-  '用法：/swarm <任务描述>\n将任务拆分为多个并行子代理执行，完成后自动汇总结果。\n示例：/swarm 为 src/api、src/ui、src/store 三个目录分别补充单元测试'
+  'Usage: /swarm <task description>\nSplit the task across parallel subagents and automatically summarize the results when complete.\nExample: /swarm add unit tests separately for src/api, src/ui, and src/store'
 
 
 /** Clamp a requested pool size into the configured bounds. */
@@ -528,7 +527,7 @@ export function apply(ctx: Context, baseConfig: Config): void {
         const tokens = value.usage === undefined ? '' : ` · ${value.usage.totalTokens ?? value.usage.inputTokens + value.usage.outputTokens} tok`
         return {
           card: 'generic',
-          title: `swarm · ${args.description} — ${value.completed}/${value.total} 完成${seconds}${tokens}`,
+          title: `swarm · ${args.description} — ${value.completed}/${value.total} concluídos${seconds}${tokens}`,
           content: [{ type: 'text', text: lines.join('\n') }],
         }
       },
@@ -637,8 +636,8 @@ export function apply(ctx: Context, baseConfig: Config): void {
 
     disposers.push(ctx.commands.register({
       name: 'swarm',
-      description: '并行子代理：将任务拆分为多个并行子代理执行，完成后自动汇总',
-      input: { hint: '描述要并行执行的任务，例如：为这三个模块分别补充单元测试' },
+      description: 'Parallel subagents: split a task across parallel subagents and summarize the results automatically',
+      input: { hint: 'Describe the task to run in parallel, for example: add unit tests for each of these three modules' },
       handler: (invocation): CommandResult => {
         const task = invocation.rawInput.trim()
         if (task.length === 0) {
@@ -652,13 +651,13 @@ export function apply(ctx: Context, baseConfig: Config): void {
         const agent = invocation.agent
         agent.inject(createUserMessage({
           content: [{ type: 'text', text: SWARM_COMMAND_DIRECTIVE }],
-          source: { kind: 'plugin', plugin: 'swarm', form: 'notice', summary: 'swarm 模式：任务将拆分为并行子代理执行' },
+          source: { kind: 'plugin', plugin: 'swarm', form: 'notice', summary: 'swarm mode: the task will run across parallel subagents' },
         }))
         agent.followup(createUserMessage({
           content: [{ type: 'text', text: task }],
           source: { kind: 'user' },
         }))
-        return { kind: 'success', text: '任务已按并行子代理模式发送，正在拆分执行…' }
+        return { kind: 'success', text: 'Task sent in parallel-subagent mode; splitting it for execution…' }
       },
     }))
 

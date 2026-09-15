@@ -23,7 +23,7 @@ export const inject = ['slots']
 
 /** Nav identity of the swarm settings page. */
 const SECTION_ID = 'dsh-app-swarm'
-const SECTION_LABEL = '并行子代理'
+const SECTION_LABEL = 'Subagentes paralelos'
 
 /**
  * Client apply: adopt styles and register the settings section.

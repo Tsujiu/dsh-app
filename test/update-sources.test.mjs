@@ -161,7 +161,7 @@ test('every source failing returns null and the error hint points at the mirror 
     globalThis.fetch = realFetch
   }
   assert.equal(MODELSCOPE_RELEASES_URL, `${MODELSCOPE_ENDPOINT}/models/${MODELSCOPE_REPO}/files`)
-  assert.ok(MANUAL_DOWNLOAD_HINT.includes('镜像'), 'hint mentions the mirror')
+   assert.ok(MANUAL_DOWNLOAD_HINT.includes('espelho'), 'hint mentions the mirror')
   assert.ok(MANUAL_DOWNLOAD_HINT.includes(MODELSCOPE_RELEASES_URL), 'hint carries the mirror address')
 })
 
@@ -187,7 +187,7 @@ test('every asset candidate failing surfaces the mirror manual-download address'
     await assert.rejects(
       () => downloadWithFallback(candidates, dest, sha512b64('payload'), () => {}),
       (err) => {
-        assert.ok(err.message.includes('无法从任何源下载更新包'), 'reports that every source failed')
+         assert.ok(err.message.includes('Não foi possível baixar o pacote de atualização de nenhuma das fontes'), 'reports that every source failed')
         assert.ok(err.message.includes(MANUAL_DOWNLOAD_HINT), 'carries the actionable hint')
         assert.ok(err.message.includes(MODELSCOPE_RELEASES_URL), 'names the mirror manual-download address')
         return true

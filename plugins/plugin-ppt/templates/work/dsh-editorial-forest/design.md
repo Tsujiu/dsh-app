@@ -1,4 +1,4 @@
-# Editorial Forest / 森林季刊
+# Editorial Forest / Revista da floresta
 
 Adapted from Zara Zhang's Editorial Forest, commit e5e204fb1f3b06290846e7dcd7aceddabeceec8c. MIT. This native edition rebuilds twelve editable layouts; it is not an HTML import or an exact copy of every upstream slide.
 

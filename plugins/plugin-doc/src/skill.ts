@@ -16,19 +16,19 @@ import { writeFileAtomic } from '@deepseek-ai/dsh-atomic-write'
 
 export const SKILL_NAME = 'dsh-word'
 
-/** The skill body (Chinese, per the product's user-facing language). */
+/** The skill body (Portuguese, per the product's user-facing language). */
 export const SKILL_MARKDOWN = `---
 name: ${SKILL_NAME}
-description: 编写结构化 JSON 文档工程并输出原生可编辑 Word 文档（.docx）。当用户要求制作、生成 Word / .docx / 可编辑文档，或要求把内容整理成正式文档时使用。
+description: Escreva um projeto de documento JSON estruturado e produza um documento Word editável nativamente (.docx). Use quando o usuário pedir para criar ou gerar um Word / .docx / documento editável, ou organizar conteúdo em um documento formal.
 ---
 
-# Word 文档生成（${SKILL_NAME}）
+# Geração de documentos Word (${SKILL_NAME})
 
-目标：为用户产出**原生可编辑**的 .docx 与可复用的 JSON 工程。所有内容都是 Word 的标题、段落、列表、表格与图片对象，用户可以在 Word / WPS 中直接继续编辑；禁止用截图或整页图片代替正文。
+Objetivo: produzir para o usuário um .docx **editável nativamente** e um projeto JSON reutilizável. Todo o conteúdo deve ser composto por objetos Word de títulos, parágrafos, listas, tabelas e imagens, para que o usuário possa continuar editando diretamente no Word / WPS; é proibido substituir o corpo por capturas de tela ou imagens de página inteira.
 
-## 阶段流程（严格按顺序，不跳步）
+## Fluxo por etapas (siga rigorosamente a ordem, sem pular etapas)
 
-1. 材料盘点与提纲：明确受众、文档目的和章节顺序，盘点用户需求、用户提供的文档与材料。材料不足时先向用户提问，或联网搜索收集资料；示例数据必须明确标注，不得编造。
+1. Levante os materiais e prepare o roteiro: defina o público, o objetivo e a ordem dos capítulos, e catalogue as necessidades e os documentos fornecidos pelo usuário. Se faltarem materiais, pergunte primeiro ou pesquise na internet; dados de exemplo devem ser identificados claramente e nunca inventados.
 2. 用 \`doc_write\` 把整份文档写成结构化 JSON（\`*.doc.json\`，工作区相对路径）。\`doc_write\` 会先校验、发现 error 时不写盘并返回问题清单。
 3. 调用只读的 \`doc_check\`（入参 \`file_path\`）。返回 \`needs_revision\` 是正常的写作反馈：问题清单会完整返回，每条带块索引、字段与修复指引。
 4. 按 **块索引 + 字段** 逐条修复：用普通文件工具读取该 \`.doc.json\`，改好后用 \`doc_write\` 整份覆盖（替换已存在文件必须带上一次返回的 \`expected_sha256\`），再次 \`doc_check\`。
@@ -53,7 +53,7 @@ description: 编写结构化 JSON 文档工程并输出原生可编辑 Word 文�
 }
 \`\`\`
 
-字段与边界：
+Campos e limites:
 
 - 顶层只允许 \`title\`（必填）、\`subtitle\`（可选，副标题）、\`author\`（可选）、\`date\`（可选，如 2026-04-10）、\`sections\`（必填，块数组，最多 500 块）；其他字段是校验错误。
 - \`author\` 与 \`date\` 会排成标题下的一行小字“作者 · 日期”，有就写上。
@@ -64,9 +64,9 @@ description: 编写结构化 JSON 文档工程并输出原生可编辑 Word 文�
 - \`bullets\` 是非空字符串数组（最多 100 条），每条用完整短句，不要自己加 "·" 前缀。
 - \`table\` 必须有非空 \`headers\`；每一行 \`rows[i]\` 是字符串数组，长度必须与表头列数一致，单元格文本不超过 300 字。
 - \`image.path\` 是**工作区相对路径**（正斜杠），不要绝对路径、不要 \`..\`；只支持 png / jpg / jpeg / gif / bmp。图片先放入工作区再引用，文件缺失时渲染会拒绝导出。
-- 文档至少要有内容块；空 \`sections\` 是错误。
+- O documento deve ter pelo menos um bloco de conteúdo; \`sections\` vazio é um erro.
 
-## 硬规则（校验器按此拒绝导出）
+## Regras rígidas (o validador recusa a exportação nestes casos)
 
 - 单文档块数上限 500，表格列数上限 8、行数上限 200，单元格文本上限 300 字；超限请拆分或改写。
 - 标题层级跳跃、标题超过 42 字、H1/H2 后没有正文内容都是 error，会拒绝导出。
@@ -74,7 +74,7 @@ description: 编写结构化 JSON 文档工程并输出原生可编辑 Word 文�
 - 未知字段（拼写错误、旧字段名）一律是 error，不会静默忽略。
 - 内容全部来自用户需求与材料；数字要同时保留单位、期间与来源。表格只放精确数值清单，叙述性内容用段落或列表。
 
-## 排版规范（渲染器固定应用，写作时就按它组织内容）
+## Regras de layout (aplicadas pelo renderizador; organize o conteúdo de acordo)
 
 - 页面 A4，上下页边距 2.54cm、左右 3.17cm，页脚居中显示“第 N 页 共 M 页”（真实 PAGE / NUMPAGES 域，编辑后自动重算）。
 - 字号阶梯：文档大标题 22pt、H1 18pt、H2 15pt、H3 13pt、正文 11pt、表格数据 10pt（表头 11pt）；标题深灰近黑，不使用彩色标题。

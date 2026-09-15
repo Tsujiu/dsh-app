@@ -23,7 +23,7 @@ export const inject = ['slots']
 
 /** Nav identity of the memory settings page. */
 const SECTION_ID = 'dsh-app-memory'
-const SECTION_LABEL = '会话记忆'
+const SECTION_LABEL = 'Memória da sessão'
 
 /**
  * A brain glyph for the settings nav (the shell maps unknown section ids

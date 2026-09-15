@@ -1,9 +1,9 @@
 {
   "id": "dsh-plum-review",
   "category": "editorial",
-  "name": "紫李季刊",
+  "name": "Revista ameixa",
   "nameEn": "Plum Review",
-  "description": "紫李季刊 · Plum Review",
+  "description": "Revista ameixa · Plum Review",
   "fonts": {
     "zh": {
       "title": "PingFang SC",
@@ -44,7 +44,7 @@
   },
   "width": 1280,
   "height": 720,
-  "designSummary": "# Plum Review / 紫李季刊\n\nColorway variant of the bundled Slate Grid / 灰阶网格 template: the same twelve page geometries, panels and slot structure, rebuilt around plum ink on a rose-paper ground. The base edition is adapted from open-source layout assets (MIT/Apache-2.0): a structure-only 16:9 geometry family rebuilt as a native, editable twelve-page template. 结构参考自开源版式资产（MIT/Apache-2.0）。This native edition re-authors the slot geometry and Chinese examples; it is not a copy of any upstream deck.\n\n## Typography\n\nEnglish display: Arial; English body: Arial. Chinese display: PingFang SC; body: PingFang SC. On Windows use Microsoft YaHei / Microsoft YaHei; on Linux use Noto Sans CJK SC / Noto Sans CJK SC. No font binary is distributed.\n\nLayout examples live in source-zh/. Preview language does not select the language of the user's output. Choose the matching fonts for the actual content; reflow longer translations instead of shrinking titles.\n\n## Layout grammar\n\nA plum, structure-first presentation system on rose paper (#f8f2f6): one soft panel tint (#eedde9), one hairline border (#d4c3cf), one rail tone (#cdbbc8) and one ink (#2a1b28) with a single plum accent (#7a3b6b). The geometry family is drawn from authored 16:9 page structures rather than one skeleton recolored many times: a left-rail cover, a full-width panel page, three equal cards, a two-column comparison with a center rule, a horizontal timeline with node circles, a four-card KPI row over an evidence panel, a chart-and-insight split, a table-and-summary split, a hero statement field, an editorial split, a section header with an anchor circle and a closing page. Corner radii step 2/4/12/16 px by element size; every panel is filled and hairlined, never outlined in the accent.\n\n1. 封面 (cover)\n2. 章节页 (section)\n3. 章节导读 (content)\n4. 三卡并列 (grid)\n5. 双栏对比 (comparison)\n6. 四步时间轴 (process)\n7. 指标总览 (data)\n8. 图表洞察 (data)\n9. 指标对照表 (table)\n10. 金句页 (quote)\n11. 图文分栏 (content)\n12. 结尾页 (closing)\n\n## Expanded composition rules\n\nThis pack has twelve layouts. Start with the information relationship, then choose a reference page. Do not default to three equal cards or one chart per slide.\n\nUse the family as a progression: a statement cover, a quiet section break, one page per claim, then the evidence pages. A detailed page should have one dominant argument, a supporting exhibit and one concise interpretation. Alternate detailed pages with quiet synthesis pages, and keep the closing page almost empty.\n\nAdapt the reference geometry to the real content. Add units, owners, measurement windows and annotations where they carry meaning. These examples use invented, explicitly marked sample data: replace every value and conclusion with user evidence; never fabricate data to make a page look fuller. Preserve native editable text and geometry. Do not turn all content into images. Keep body text around 16–20 pt and exhibit labels around 11–14 pt; reflow or split before shrinking.\n\nThe chart, table and picture slots in this edition carry a placeholder text block that preserves the slot rectangle: the structure-only source declares no data or image, so the slot is authored as copy until real content replaces it. The region, bounds and zone remain valid for a native exhibit later.\n\nReference families: 2 section; 3 content; 4 grid; 5 comparison; 6 process; 7–8 data; 9 table; 10 quote; 11 content; 12 closing.\n\n## Composition finish\n\nTreat an analytical page as a small argument: a claim at the top, a dominant exhibit, and a concise readout or next decision. A second exhibit must add evidence, not repeat the headline. Do not fill every page with equally sized cards. Keep a quiet section break between dense runs.\n\nUse a shared baseline for labels, aligned numeric columns and a limited set of type sizes. Distinguish a section label, headline, exhibit label, evidence text and source note by size and spacing before adding color. Avoid single-word last lines, detached punctuation and arbitrary line breaks. Reflow Chinese and English separately.\n\nPut units, population and measurement window beside the relevant exhibit. Reconcile subtotals and deltas, and use a common quantitative scale. Highlight the one decision or exception, not every cell.\n\nInspect a rendered page, not just its bounding boxes: check the reading order, line endings, label collisions and the gap above the source note. Use native editable text and geometry. Fictional reference data must be replaced by verified user material or visibly marked as an example.\n\nAll layout geometry is native and editable. Example figures are illustrative, not reported facts. Retain a 48 pt outer margin and use 16:9, 960 × 540 pt.\n\n结构参考自开源版式资产（MIT/Apache-2.0）。\n",
+  "designSummary": "# Plum Review / Revista ameixa\n\nColorway variant of the bundled Slate Grid / Grade em tons de cinza template: the same twelve page geometries, panels and slot structure, rebuilt around plum ink on a rose-paper ground. The base edition is adapted from open-source layout assets (MIT/Apache-2.0): a structure-only 16:9 geometry family rebuilt as a native, editable twelve-page template. Estrutura baseada em assets de layout open source (MIT/Apache-2.0)。This native edition re-authors the slot geometry and Chinese examples; it is not a copy of any upstream deck.\n\n## Typography\n\nEnglish display: Arial; English body: Arial. Chinese display: PingFang SC; body: PingFang SC. On Windows use Microsoft YaHei / Microsoft YaHei; on Linux use Noto Sans CJK SC / Noto Sans CJK SC. No font binary is distributed.\n\nLayout examples live in source-zh/. Preview language does not select the language of the user's output. Choose the matching fonts for the actual content; reflow longer translations instead of shrinking titles.\n\n## Layout grammar\n\nA plum, structure-first presentation system on rose paper (#f8f2f6): one soft panel tint (#eedde9), one hairline border (#d4c3cf), one rail tone (#cdbbc8) and one ink (#2a1b28) with a single plum accent (#7a3b6b). The geometry family is drawn from authored 16:9 page structures rather than one skeleton recolored many times: a left-rail cover, a full-width panel page, three equal cards, a two-column comparison with a center rule, a horizontal timeline with node circles, a four-card KPI row over an evidence panel, a chart-and-insight split, a table-and-summary split, a hero statement field, an editorial split, a section header with an anchor circle and a closing page. Corner radii step 2/4/12/16 px by element size; every panel is filled and hairlined, never outlined in the accent.\n\n1. Capa (cover)\n2. Página de seção (section)\n3. Introdução do capítulo (content)\n4. Três cartões lado a lado (grid)\n5. Comparação em duas colunas (comparison)\n6. Linha do tempo em quatro etapas (process)\n7. Visão geral dos indicadores (data)\n8. Insights do gráfico (data)\n9. Tabela comparativa de indicadores (table)\n10. Página de citação (quote)\n11. Conteúdo dividido (content)\n12. Encerramento (closing)\n\n## Expanded composition rules\n\nThis pack has twelve layouts. Start with the information relationship, then choose a reference page. Do not default to three equal cards or one chart per slide.\n\nUse the family as a progression: a statement cover, a quiet section break, one page per claim, then the evidence pages. A detailed page should have one dominant argument, a supporting exhibit and one concise interpretation. Alternate detailed pages with quiet synthesis pages, and keep the closing page almost empty.\n\nAdapt the reference geometry to the real content. Add units, owners, measurement windows and annotations where they carry meaning. These examples use invented, explicitly marked sample data: replace every value and conclusion with user evidence; never fabricate data to make a page look fuller. Preserve native editable text and geometry. Do not turn all content into images. Keep body text around 16–20 pt and exhibit labels around 11–14 pt; reflow or split before shrinking.\n\nThe chart, table and picture slots in this edition carry a placeholder text block that preserves the slot rectangle: the structure-only source declares no data or image, so the slot is authored as copy until real content replaces it. The region, bounds and zone remain valid for a native exhibit later.\n\nReference families: 2 section; 3 content; 4 grid; 5 comparison; 6 process; 7–8 data; 9 table; 10 quote; 11 content; 12 closing.\n\n## Composition finish\n\nTreat an analytical page as a small argument: a claim at the top, a dominant exhibit, and a concise readout or next decision. A second exhibit must add evidence, not repeat the headline. Do not fill every page with equally sized cards. Keep a quiet section break between dense runs.\n\nUse a shared baseline for labels, aligned numeric columns and a limited set of type sizes. Distinguish a section label, headline, exhibit label, evidence text and source note by size and spacing before adding color. Avoid single-word last lines, detached punctuation and arbitrary line breaks. Reflow Chinese and English separately.\n\nPut units, population and measurement window beside the relevant exhibit. Reconcile subtotals and deltas, and use a common quantitative scale. Highlight the one decision or exception, not every cell.\n\nInspect a rendered page, not just its bounding boxes: check the reading order, line endings, label collisions and the gap above the source note. Use native editable text and geometry. Fictional reference data must be replaced by verified user material or visibly marked as an example.\n\nAll layout geometry is native and editable. Example figures are illustrative, not reported facts. Retain a 48 pt outer margin and use 16:9, 960 × 540 pt.\n\nEstrutura baseada em assets de layout open source (MIT/Apache-2.0)。\n",
   "visualGrammar": "plum-review",
   "recommendedDensity": "medium",
   "layoutFamilies": [
@@ -65,7 +65,7 @@
       "sourceTitle": "Cover",
       "family": "cover",
       "density": "low",
-      "structureSummary": "左侧竖条，大标题与副标题的封面",
+      "structureSummary": "Capa com barra vertical à esquerda, título grande e subtítulo",
       "zones": [
         {
           "kind": "shape",
@@ -103,7 +103,7 @@
       "sourceTitle": "Section header",
       "family": "section",
       "density": "low",
-      "structureSummary": "左侧长条与章节标题，右上圆形锚点",
+      "structureSummary": "Barra lateral esquerda com título de seção e âncora circular no canto superior direito",
       "zones": [
         {
           "kind": "shape",
@@ -150,7 +150,7 @@
       "sourceTitle": "Title and content",
       "family": "content",
       "density": "medium",
-      "structureSummary": "顶部短色条与整幅内容面板",
+      "structureSummary": "Barra colorida curta no topo e painel de conteúdo em toda a largura",
       "zones": [
         {
           "kind": "shape",
@@ -197,7 +197,7 @@
       "sourceTitle": "Three-card synthesis",
       "family": "grid",
       "density": "medium",
-      "structureSummary": "三张等宽圆角面板并列的卡片组",
+      "structureSummary": "Grupo de três painéis arredondados de mesma largura lado a lado",
       "zones": [
         {
           "kind": "shape",
@@ -273,7 +273,7 @@
       "sourceTitle": "Comparison",
       "family": "comparison",
       "density": "medium",
-      "structureSummary": "左右等宽面板与中缝分隔条的双栏对比",
+      "structureSummary": "Comparação em duas colunas com painéis de mesma largura e divisor central",
       "zones": [
         {
           "kind": "shape",
@@ -359,7 +359,7 @@
       "sourceTitle": "Process timeline",
       "family": "process",
       "density": "medium",
-      "structureSummary": "横向时间轴、四个节点圆与底部结论条",
+      "structureSummary": "Linha do tempo horizontal, quatro nós circulares e faixa de conclusão inferior",
       "zones": [
         {
           "kind": "shape",
@@ -473,7 +473,7 @@
       "sourceTitle": "KPI dashboard",
       "family": "data",
       "density": "high",
-      "structureSummary": "四张指标卡加整幅证据面板",
+      "structureSummary": "Quatro cartões de indicadores sobre um painel de evidências em toda a largura",
       "zones": [
         {
           "kind": "shape",
@@ -587,7 +587,7 @@
       "sourceTitle": "Chart and insight",
       "family": "data",
       "density": "high",
-      "structureSummary": "左侧大图表区加右侧解读栏与来源注",
+      "structureSummary": "Área ampla de gráfico à esquerda, coluna de leitura à direita e nota de fonte",
       "zones": [
         {
           "kind": "shape",
@@ -654,7 +654,7 @@
       "sourceTitle": "Table and summary",
       "family": "table",
       "density": "high",
-      "structureSummary": "左侧宽表格区加右侧解读栏与来源注",
+      "structureSummary": "Área ampla de tabela à esquerda, coluna de leitura à direita e nota de fonte",
       "zones": [
         {
           "kind": "shape",
@@ -721,7 +721,7 @@
       "sourceTitle": "Hero statement",
       "family": "quote",
       "density": "low",
-      "structureSummary": "整幅浅色底场加居左大金句与副题",
+      "structureSummary": "Campo claro em toda a largura com citação grande à esquerda e subtítulo",
       "zones": [
         {
           "kind": "shape",
@@ -768,7 +768,7 @@
       "sourceTitle": "Editorial split",
       "family": "content",
       "density": "medium",
-      "structureSummary": "左侧窄栏文字与右侧整幅画面区的分栏",
+      "structureSummary": "Divisão com coluna estreita de texto à esquerda e área visual em toda a largura à direita",
       "zones": [
         {
           "kind": "shape",
@@ -825,7 +825,7 @@
       "sourceTitle": "Closing",
       "family": "closing",
       "density": "low",
-      "structureSummary": "短色条、收尾信息与联系人行的结尾页",
+      "structureSummary": "Página final com barra colorida curta, informações de encerramento e linha de contato",
       "zones": [
         {
           "kind": "shape",

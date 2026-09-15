@@ -1,4 +1,4 @@
-# Soft Editorial / 柔和编辑部
+# Soft Editorial / Editorial suave
 
 Adapted from Zara Zhang's Soft Editorial, commit e5e204fb1f3b06290846e7dcd7aceddabeceec8c. MIT. This native edition rebuilds twelve editable layouts; it is not an HTML import or an exact copy of every upstream slide.
 

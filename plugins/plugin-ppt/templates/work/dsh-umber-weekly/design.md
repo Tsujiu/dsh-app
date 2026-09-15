@@ -1,6 +1,6 @@
-# Umber Weekly / 炭褐周报
+# Umber Weekly / Relatório semanal sépia
 
-Colorway variant of the bundled Editorial Forest / 森林季刊 template: the same twelve editable layouts and geometry, rebuilt around warm charcoal with a single clay-rust accent. The base edition is adapted from Zara Zhang's Editorial Forest, commit e5e204fb1f3b06290846e7dcd7aceddabeceec8c. MIT. This native edition rebuilds twelve editable layouts; it is not an HTML import or an exact copy of every upstream slide.
+Colorway variant of the bundled Editorial Forest / Revista florestal template: the same twelve editable layouts and geometry, rebuilt around warm charcoal with a single clay-rust accent. The base edition is adapted from Zara Zhang's Editorial Forest, commit e5e204fb1f3b06290846e7dcd7aceddabeceec8c. MIT. This native edition rebuilds twelve editable layouts; it is not an HTML import or an exact copy of every upstream slide.
 
 ## Typography
 
@@ -23,7 +23,7 @@ Layout examples live in source-zh/. Preview language does not select the languag
 
 All charts and diagrams are native editable vectors. Example figures are illustrative, not reported facts. Retain a 48 pt outer margin and use 16:9, 960 × 540 pt.
 
-Copyright (c) 2026 Zara Zhang. DSH adaptation 2026-09-06; Umber Weekly colorway variant 2026-09-13. Derived from the bundled 森林季刊 template (MIT); see its design document for the pinned upstream source.
+Copyright (c) 2026 Zara Zhang. DSH adaptation 2026-09-06; Umber Weekly colorway variant 2026-09-13. Derived from the bundled Revista florestal template (MIT); see its design document for the pinned upstream source.
 
 ## Expanded composition rules
 
