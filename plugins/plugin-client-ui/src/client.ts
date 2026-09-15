@@ -19,26 +19,28 @@ import type {} from '@deepseek-ai/dsh-client-connection/client'
 // Type-only: pulls the settings shell's SlotMap merge (the 'settings.section'
 // entry) and the settingsScope/settingsSchema Context merges.
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
+import type {} from '@deepseek-ai/dsh-client-locale/client'
 import { AdvancedModelsSection } from './client/models-advanced/section.tsx'
 import type { AdvancedModelsInjected } from './client/models-advanced/section.tsx'
 import { AdvancedModelsStore } from './client/models-advanced/store.ts'
 import type { AdvancedModelsState } from './client/models-advanced/store.ts'
 import { mountWhaleBackground } from './client/whale-background.ts'
 import type { SettingsDescribeFace, SettingsSchemaService } from '@deepseek-ai/dsh-client-ui-settings/client'
+import { PT_BR } from './client/pt-br.ts'
 
 // The Advanced Models store talks to the `llm` and `settings` Remote domains
 // directly (provider directory + discovery, settings.mutate), so those nested
 // namespace services must be declared here — Cordis refuses `remote.*` access
 // that is not in this plugin's `inject`.
 export const inject = [
-  'theme', 'slots', 'remote', 'remote.llm', 'remote.settings', 'settingsScope', 'settingsSchema',
+  'theme', 'slots', 'locale', 'remote', 'remote.llm', 'remote.settings', 'settingsScope', 'settingsSchema',
 ]
 
 export const BRAND_THEME_ID = 'dsh-app-brand'
 
 /** Nav identity of the Advanced Models page. */
 const ADVANCED_SECTION_ID = 'model-advanced'
-const ADVANCED_SECTION_LABEL = '模型高级设置'
+const ADVANCED_SECTION_LABEL = 'Configurações avançadas de modelos'
 
 /**
  * Brand theme: a dark-first variant built on the alias-token layer.
@@ -140,6 +142,36 @@ function mountNavIconPatch(): () => void {
 }
 
 export function apply(ctx: ClientContext): void {
+  // Add the Brazilian Portuguese language pack to the upstream selector. The
+  // upstream dictionaries remain the fallback until each namespace is fully
+  // translated, so selecting pt-BR never leaves an untranslated key blank.
+  ctx.effect(() => {
+    const disposeLanguage = ctx.locale.addLanguage({
+      id: 'pt-BR',
+      label: 'Português (Brasil)',
+      fallback: 'en',
+    })
+    const disposeSettingsLocale = ctx.locale.register('settings.locale', 'pt-BR', {
+      'language.title': 'Idioma',
+    })
+    return () => {
+      disposeSettingsLocale()
+      disposeLanguage()
+    }
+  }, 'dsh-app: Brazilian Portuguese language pack')
+
+  // Register translations per upstream namespace. The locale runtime falls
+  // back to English for keys not yet present, which keeps new kernel strings
+  // readable while the catalog grows.
+  ctx.effect(() => {
+    const disposers = Object.entries(PT_BR).map(([namespace, dictionary]) =>
+      ctx.locale.register(namespace, 'pt-BR', dictionary),
+    )
+    return () => {
+      for (const dispose of disposers) dispose()
+    }
+  }, 'dsh-app: Brazilian Portuguese core translations')
+
   // --- Brand theme (selectable in Settings → Appearance). ---
   ctx.theme.register({
     id: BRAND_THEME_ID,

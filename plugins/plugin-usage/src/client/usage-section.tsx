@@ -89,15 +89,15 @@ async function fetchJson<T>(url: string): Promise<T> {
 
 function Cards({ totals }: { totals: UsageAgg }): ReactNode {
   const items: Array<[string, string, string]> = [
-    ['请求数', fmtInt(totals.requests), ''],
-    ['总 tokens', fmtTokens(totals.inputTokens + totals.outputTokens + totals.cacheReadTokens + totals.cacheWriteTokens), '输入+输出+缓存读写'],
-    ['输入 tokens（未命中缓存）', fmtTokens(totals.inputTokens), ''],
-    ['输出 tokens', fmtTokens(totals.outputTokens), ''],
-    ['缓存命中率', fmtPct(totals.cacheHitRate), `${fmtTokens(totals.cacheReadTokens)} 读 / ${fmtTokens(totals.inputTokens + totals.cacheWriteTokens)} 未命中`],
-    ['缓存读 tokens', fmtTokens(totals.cacheReadTokens), ''],
-    ['缓存写 tokens', fmtTokens(totals.cacheWriteTokens), ''],
-    ['推理 tokens', fmtTokens(totals.reasoningTokens), ''],
-    ['估算成本', fmtCost(totals.cost), totals.cost > 0 ? '仅 DeepSeek 官方 API · 分时价估算' : '未配置定价'],
+    ['Número de solicitações', fmtInt(totals.requests), ''],
+    ['Total de tokens', fmtTokens(totals.inputTokens + totals.outputTokens + totals.cacheReadTokens + totals.cacheWriteTokens), 'Entrada + saída + leitura e gravação do cache'],
+    ['Tokens de entrada (sem cache)', fmtTokens(totals.inputTokens), ''],
+    ['Tokens de saída', fmtTokens(totals.outputTokens), ''],
+    ['Taxa de acerto do cache', fmtPct(totals.cacheHitRate), `${fmtTokens(totals.cacheReadTokens)} lidos / ${fmtTokens(totals.inputTokens + totals.cacheWriteTokens)} sem acerto`],
+    ['Tokens lidos do cache', fmtTokens(totals.cacheReadTokens), ''],
+    ['Tokens gravados no cache', fmtTokens(totals.cacheWriteTokens), ''],
+    ['Tokens de raciocínio', fmtTokens(totals.reasoningTokens), ''],
+    ['Custo estimado', fmtCost(totals.cost), totals.cost > 0 ? 'Somente API oficial DeepSeek · estimativa por faixa horária' : 'Preços não configurados'],
   ]
   return (
     <div className="dshau_cards">
@@ -160,20 +160,20 @@ function BalanceCard(): ReactNode {
 
   const entry = state.status === 'ok' ? (state.balance.balances.find((b) => b.currency === 'CNY') ?? state.balance.balances[0]) : undefined
   const value = state.status === 'loading'
-    ? '查询中…'
+    ? 'Consultando…'
     : entry !== undefined
       ? `${entry.currency === 'CNY' ? '¥' : ''}${entry.total}${entry.currency !== 'CNY' ? ` ${entry.currency}` : ''}`
       : state.status === 'error'
-        ? '查询失败'
+        ? 'Falha na consulta'
         : '—'
   const sub = state.status === 'ok' && entry !== undefined
-    ? `赠金 ${entry.granted} · 充值 ${entry.toppedUp}`
+    ? `Bônus ${entry.granted} · recarga ${entry.toppedUp}`
     : state.status === 'error'
       ? state.message
-      : '点击查询 DeepSeek 官方账户'
+      : 'Clique para consultar a conta oficial DeepSeek'
   const subClass = state.status === 'error' ? 'dshau_cardSub dshau_cardSubError' : 'dshau_cardSub'
   const queriedAt = state.status === 'ok'
-    ? ` · ${String(new Date(state.at).getHours()).padStart(2, '0')}:${String(new Date(state.at).getMinutes()).padStart(2, '0')} 查询`
+     ? ` · consulta às ${String(new Date(state.at).getHours()).padStart(2, '0')}:${String(new Date(state.at).getMinutes()).padStart(2, '0')}`
     : ''
 
   return (
@@ -181,7 +181,7 @@ function BalanceCard(): ReactNode {
       className="dshau_card dshau_cardClickable"
       role="button"
       tabIndex={0}
-      aria-label="查询 DeepSeek 官方账户余额"
+       aria-label="Consultar saldo da conta oficial DeepSeek"
       onClick={() => { void query(true) }}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
@@ -190,7 +190,7 @@ function BalanceCard(): ReactNode {
         }
       }}
     >
-      <div className="dshau_cardLabel">API 余额{queriedAt}</div>
+      <div className="dshau_cardLabel">Saldo da API{queriedAt}</div>
       <div className="dshau_cardValue">{value}</div>
       <div className={subClass} title={sub}>{sub}</div>
     </div>
@@ -216,14 +216,14 @@ function HeatCalendar({ heat, metric, onTip }: { heat: HeatmapWire; metric: 'tok
     const v = metric === 'tokens' ? cell.totalTokens : cell.requests
     return v > m ? v : m
   }, 0)
-  const dows = ['日', '一', '二', '三', '四', '五', '六']
+  const dows = ['dom.', 'seg.', 'ter.', 'qua.', 'qui.', 'sex.', 'sáb.']
   const firstDow = new Date(`${cells[0]!.date}T00:00:00`).getDay()
   const monthLabels: string[] = []
   const monthSpans: number[] = []
   for (let w = 0; w < weeks; w += 1) {
     const date = cells[w * 7]!.date
     const prev = w > 0 ? cells[(w - 1) * 7]!.date : ''
-    monthLabels.push(w === 0 || date.slice(0, 7) !== prev.slice(0, 7) ? `${Number(date.slice(5, 7))}月` : '')
+    monthLabels.push(w === 0 || date.slice(0, 7) !== prev.slice(0, 7) ? `${Number(date.slice(5, 7))}` : '')
     monthSpans.push(0)
   }
   let nextLabel = weeks
@@ -234,8 +234,8 @@ function HeatCalendar({ heat, metric, onTip }: { heat: HeatmapWire; metric: 'tok
   }
   const tipText = (cell: HeatmapWire['cells'][number]): string[] => [
     cell.date,
-    `请求 ${cell.requests} · 总 tokens ${fmtTokens(cell.totalTokens)}`,
-    `缓存命中率 ${fmtPct(cell.cacheHitRate)}`,
+    `${cell.requests} solicitações · total de tokens ${fmtTokens(cell.totalTokens)}`,
+    `Taxa de acerto do cache ${fmtPct(cell.cacheHitRate)}`,
   ]
   return (
     <div
@@ -285,16 +285,16 @@ function HeatCalendar({ heat, metric, onTip }: { heat: HeatmapWire; metric: 'tok
 // stable base layer (often >90% of tokens); the thin input/output/write bands
 // ride on top where their day-to-day variation stays visible.
 const SEGMENTS: Array<{ key: 'cacheReadTokens' | 'inputTokens' | 'cacheWriteTokens' | 'outputTokens'; label: string; color: string }> = [
-  { key: 'cacheReadTokens', label: '缓存读', color: 'var(--dsw-alias-state-success-primary)' },
-  { key: 'inputTokens', label: '输入', color: 'var(--dsw-alias-brand-primary)' },
-  { key: 'cacheWriteTokens', label: '缓存写', color: 'var(--dsw-alias-state-warn-primary)' },
-  { key: 'outputTokens', label: '输出', color: 'var(--dsw-alias-state-business-primary)' },
+  { key: 'cacheReadTokens', label: 'Leitura do cache', color: 'var(--dsw-alias-state-success-primary)' },
+  { key: 'inputTokens', label: 'Entrada', color: 'var(--dsw-alias-brand-primary)' },
+  { key: 'cacheWriteTokens', label: 'Gravação no cache', color: 'var(--dsw-alias-state-warn-primary)' },
+  { key: 'outputTokens', label: 'Saída', color: 'var(--dsw-alias-state-business-primary)' },
 ]
 
 const TREND_METRICS: Array<{ id: TrendMetric; label: string }> = [
   { id: 'tokens', label: 'Tokens' },
-  { id: 'requests', label: '请求数' },
-  { id: 'cost', label: '成本' },
+  { id: 'requests', label: 'Solicitações' },
+  { id: 'cost', label: 'Custo' },
 ]
 
 /** Smallest round value ≥ value from the 1/2/2.5/5 ladder. */
@@ -381,21 +381,21 @@ function TrendChart({ daily, range, metric, onTip }: {
     const lines = metric === 'tokens'
       ? [
         p.range,
-        `请求 ${fmtInt(p.requests)} · 命中率 ${fmtPct(p.cacheHitRate)}`,
-        `输入 ${fmtTokens(p.inputTokens)} · 缓存读 ${fmtTokens(p.cacheReadTokens)}`,
-        `缓存写 ${fmtTokens(p.cacheWriteTokens)} · 输出 ${fmtTokens(p.outputTokens)}`,
-        `成本 ${fmtCost(p.cost)}`,
+        `Solicitações ${fmtInt(p.requests)} · taxa de acerto ${fmtPct(p.cacheHitRate)}`,
+        `Entrada ${fmtTokens(p.inputTokens)} · leitura do cache ${fmtTokens(p.cacheReadTokens)}`,
+        `Gravação no cache ${fmtTokens(p.cacheWriteTokens)} · saída ${fmtTokens(p.outputTokens)}`,
+        `Custo ${fmtCost(p.cost)}`,
       ]
       : metric === 'requests'
-        ? [p.range, `请求 ${fmtInt(p.requests)}`, `命中率 ${fmtPct(p.cacheHitRate)}`, `成本 ${fmtCost(p.cost)}`]
-        : [p.range, `成本 ${fmtCost(p.cost)}`, `请求 ${fmtInt(p.requests)}`, `命中率 ${fmtPct(p.cacheHitRate)}`]
+        ? [p.range, `Solicitações ${fmtInt(p.requests)}`, `Taxa de acerto ${fmtPct(p.cacheHitRate)}`, `Custo ${fmtCost(p.cost)}`]
+        : [p.range, `Custo ${fmtCost(p.cost)}`, `Solicitações ${fmtInt(p.requests)}`, `Taxa de acerto ${fmtPct(p.cacheHitRate)}`]
     onTip({ text: lines, x, y })
   }
 
   const hitY = (rate: number): number => padT + plotH - rate * plotH
 
   return (
-    <svg className="dshau_chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="每日用量趋势">
+    <svg className="dshau_chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Tendência diária de uso">
       {/* left axis: gridlines + token/request/cost ticks */}
       {[0, 1, 2, 3].map((g) => {
         const gy = padT + (plotH * g) / 3
@@ -495,13 +495,13 @@ function TrendLegend({ metric }: { metric: TrendMetric }): ReactNode {
       {metric !== 'tokens' && (
         <span className="dshau_legendItem">
           <span className="dshau_legendSwatch" style={{ background: 'var(--dsw-alias-brand-primary)' }} />
-          {metric === 'requests' ? '请求数' : '成本'}
+          {metric === 'requests' ? 'Solicitações' : 'Custo'}
         </span>
       )}
       {metric === 'tokens' && (
         <span className="dshau_legendItem">
           <span className="dshau_legendLine" />
-          缓存命中率
+          Taxa de acerto do cache
         </span>
       )}
     </div>
@@ -514,22 +514,22 @@ function TrendLegend({ metric }: { metric: TrendMetric }): ReactNode {
 
 function ModelTable({ models }: { models: UsageModelAgg[] }): ReactNode {
   if (models.length === 0) {
-    return <div className="dshau_empty">暂无数据</div>
+    return <div className="dshau_empty">Nenhum dado disponível</div>
   }
   return (
     <div className="dshau_tableWrap">
       <table className="dshau_table">
         <thead>
           <tr>
-            <th>模型</th>
-            <th>请求</th>
-            <th>输入</th>
-            <th>输出</th>
-            <th>缓存读</th>
-            <th>缓存写</th>
-            <th>命中率</th>
-            <th>成本</th>
-            <th>占比</th>
+            <th>Modelo</th>
+            <th>Solicitações</th>
+            <th>Entrada</th>
+            <th>Saída</th>
+            <th>Leitura do cache</th>
+            <th>Gravação no cache</th>
+            <th>Taxa de acerto</th>
+            <th>Custo</th>
+            <th>Participação</th>
           </tr>
         </thead>
         <tbody>
@@ -631,7 +631,7 @@ export function UsageSection(): ReactNode {
   if (disabled === true) {
     return (
       <section className="dshau_section">
-        <div className="dshau_empty">内置用量统计已在用户配置中停用（enabled=false）。将 storages/dsh-app-plugin-usage/config.json 中的 enabled 改为 true 或删除该文件后重启即可恢复。</div>
+        <div className="dshau_empty">As estatísticas de uso integradas foram desativadas na configuração (enabled=false). Defina enabled como true em storages/dsh-app-plugin-usage/config.json ou remova o arquivo e reinicie para reativá-las.</div>
       </section>
     )
   }
@@ -642,8 +642,8 @@ export function UsageSection(): ReactNode {
   return (
     <section className="dshau_section" aria-labelledby="dsh-app-usage-title">
       <div className="dshau_header">
-        <h2 id="dsh-app-usage-title" className="dshau_title">用量统计</h2>
-        <div className="dshau_tabs" role="tablist" aria-label="统计区间">
+         <h2 id="dsh-app-usage-title" className="dshau_title">Estatísticas de uso</h2>
+         <div className="dshau_tabs" role="tablist" aria-label="Intervalo das estatísticas">
           {RANGES.map((days) => (
             <button
               type="button"
@@ -654,26 +654,26 @@ export function UsageSection(): ReactNode {
               key={days}
             >
               {days}
-              天
+               dias
             </button>
           ))}
         </div>
-        <button type="button" className="dshau_secondaryButton" onClick={() => { void load() }}>刷新</button>
+        <button type="button" className="dshau_secondaryButton" onClick={() => { void load() }}>Atualizar</button>
         <label className="dshau_autoToggle">
           <input
             type="checkbox"
             checked={auto}
             onChange={(event) => { setAuto(event.target.checked) }}
           />
-          自动刷新
+           Atualização automática
         </label>
       </div>
-      {error !== '' && <div className="dshau_banner">{`加载失败：${error}`}</div>}
+      {error !== '' && <div className="dshau_banner">{`Falha ao carregar: ${error}`}</div>}
       {loading ? (
-        <div className="dshau_empty">加载中…</div>
+        <div className="dshau_empty">Carregando…</div>
       ) : empty ? (
         <>
-          <div className="dshau_empty">暂无用量数据</div>
+          <div className="dshau_empty">Nenhum dado de uso disponível</div>
           <BalanceCard />
         </>
       ) : (
@@ -683,7 +683,7 @@ export function UsageSection(): ReactNode {
           <div className="dshau_panel">
             <div className="dshau_panelHeader">
               <h3 className="dshau_panelTitle">
-                {`每日热力（最近 26 周${heat !== null ? ` · ${fmtDate(heat.since)} ~ ${fmtDate(heat.until)}` : ''}）`}
+                 {`Mapa de calor diário (últimas 26 semanas${heat !== null ? ` · ${fmtDate(heat.since)} ~ ${fmtDate(heat.until)}` : ''})`}
               </h3>
               <div className="dshau_legend">
                 <span className="dshau_legendItem">
@@ -692,22 +692,22 @@ export function UsageSection(): ReactNode {
                     className="dshau_secondaryButton"
                     onClick={() => { setHeatMetric(heatMetric === 'tokens' ? 'requests' : 'tokens') }}
                   >
-                    {`着色依据：${heatMetric === 'tokens' ? 'Tokens' : '请求数'}`}
+                     {`Métrica: ${heatMetric === 'tokens' ? 'Tokens' : 'Solicitações'}`}
                   </button>
                 </span>
-                <span className="dshau_legendItem">少</span>
+                 <span className="dshau_legendItem">Menos</span>
                 {[0, 1, 2, 3, 4].map((level) => (
                   <span className="dshau_legendCell" data-level={level} key={level} />
                 ))}
-                <span className="dshau_legendItem">多</span>
+                 <span className="dshau_legendItem">Mais</span>
               </div>
             </div>
             {heat !== null && <HeatCalendar heat={heat} metric={heatMetric} onTip={setTip} />}
           </div>
           <div className="dshau_panel">
             <div className="dshau_panelHeader">
-              <h3 className="dshau_panelTitle">{`每日趋势（近 ${range} 天${range > 60 ? '，按周聚合' : ''}）`}</h3>
-              <div className="dshau_tabs dshau_metricTabs" role="tablist" aria-label="趋势指标">
+               <h3 className="dshau_panelTitle">{`Tendência diária (últimos ${range} dias${range > 60 ? ', agrupada por semana' : ''})`}</h3>
+               <div className="dshau_tabs dshau_metricTabs" role="tablist" aria-label="Métrica da tendência">
                 {TREND_METRICS.map((m) => (
                   <button
                     type="button"
@@ -728,7 +728,7 @@ export function UsageSection(): ReactNode {
             )}
           </div>
           <div className="dshau_panel">
-            <h3 className="dshau_panelTitle">{`按模型用量（近 ${range} 天）`}</h3>
+             <h3 className="dshau_panelTitle">{`Uso por modelo (últimos ${range} dias)`}</h3>
             <ModelTable models={summary?.models ?? []} />
           </div>
         </>

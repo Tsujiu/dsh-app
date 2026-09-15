@@ -34,7 +34,7 @@ export interface ConfirmDialogProps {
  * @returns null when closed.
  */
 export function ConfirmDialog({
-  open, title, message, confirmLabel, cancelLabel = '取消', busy = false, tone = 'neutral', onConfirm, onClose,
+  open, title, message, confirmLabel, cancelLabel = 'Cancelar', busy = false, tone = 'neutral', onConfirm, onClose,
 }: ConfirmDialogProps): ReactNode {
   useEffect(() => {
     if (!open) return

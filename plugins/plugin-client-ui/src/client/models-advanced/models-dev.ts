@@ -63,7 +63,7 @@ export async function fetchModelsDev(): Promise<ModelsDevProvider[]> {
       const response = await fetch(source, { signal: AbortSignal.timeout(15_000) })
       if (!response.ok) throw new Error(`${source} HTTP ${String(response.status)}`)
       const data: unknown = await response.json()
-      if (typeof data !== 'object' || data === null) throw new Error(`${source} 返回格式异常`)
+      if (typeof data !== 'object' || data === null) throw new Error(`${source} retornou um formato inválido`)
       const providers: ModelsDevProvider[] = []
       for (const [id, entry] of Object.entries(data as ModelsDevApi)) {
         if (typeof entry !== 'object' || entry === null) continue

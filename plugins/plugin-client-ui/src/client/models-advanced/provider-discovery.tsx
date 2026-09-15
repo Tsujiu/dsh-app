@@ -38,15 +38,15 @@ function messageOf(error: unknown): string {
 function friendlyFailure(message: string): string {
   const normalized = message.toLowerCase()
   if (normalized.includes('baseurl') || normalized.includes('endpoint')) {
-    return '该 provider 没有内置目录，请检查 baseURL 和 wire 协议。'
+    return 'Este provider não possui um catálogo integrado. Verifique a baseURL e o protocolo wire.'
   }
   if (normalized.includes('credential') || normalized.includes('api key') || normalized.includes('unauthorized')) {
-    return 'provider 需要凭据，请检查官方“模型”页的凭据配置，或填写临时 API Key。'
+    return 'Este provider exige credenciais. Verifique a configuração na página oficial de modelos ou informe uma API Key temporária.'
   }
   if (normalized.includes('timeout') || normalized.includes('network') || normalized.includes('fetch')) {
-    return 'provider 暂时无法访问，请检查网络和端点后重试。'
+    return 'O provider não está acessível no momento. Verifique a rede e o endpoint e tente novamente.'
   }
-  return 'dsh 暂时无法从该 provider 获取模型，请检查协议、端点和凭据。'
+  return 'O dsh não conseguiu obter modelos deste provider. Verifique o protocolo, o endpoint e as credenciais.'
 }
 
 function requestOf(target: ProviderDiscoveryTarget, apiKey: string): LlmModelDiscoveryRequest {
@@ -139,55 +139,55 @@ export function ProviderModelDiscoveryDialog(props: ProviderModelDiscoveryDialog
   }, [open, key, api])
 
   if (!open || target === undefined) return null
-  const label = target.provider ?? '当前新路由'
+  const label = target.provider ?? 'Nova rota atual'
   return (
     <div className="dshAma-modalMask" role="presentation" onClick={onClose}>
       <div
         className="dshAma-modal dshAma-discoveryModal"
         role="dialog"
         aria-modal="true"
-        aria-label="从 provider 发现模型"
+         aria-label="Descobrir modelos do provider"
         onClick={(event) => { event.stopPropagation() }}
       >
         <div className="dshAma-modalHead">
-          <span className="dshAma-modalTitle">从 provider 发现模型</span>
-          <button type="button" className="dshAma-iconButton" aria-label="关闭" onClick={onClose}>✕</button>
+           <span className="dshAma-modalTitle">Descobrir modelos do provider</span>
+           <button type="button" className="dshAma-iconButton" aria-label="Fechar" onClick={onClose}>✕</button>
         </div>
         <div className="dshAma-modalBody">
           <div className="dshAma-discoverySource">
-            <span className="dshAma-discoverySourceLabel">发现来源</span>
+             <span className="dshAma-discoverySourceLabel">Fonte da descoberta</span>
             <code>{label}</code>
           </div>
           <p className="dshAma-hint">
-            使用 dsh 当前 provider 的模型发现接口，导入结果只填入草稿，保存后才会写入配置。
+             Usa a interface de descoberta de modelos do provider atual do dsh. Os resultados entram apenas no rascunho e só são salvos após a confirmação.
           </p>
           {isDraftRoute
             ? (
               <label className="dshAma-field">
-                <span className="dshAma-fieldLabel">临时 API Key（可选，不会保存）</span>
+                 <span className="dshAma-fieldLabel">API Key temporária (opcional, não será salva)</span>
                 <input
                   className="dshAma-input"
                   type="password"
                   autoComplete="off"
                   value={apiKey}
-                  aria-label="临时 API Key"
-                  placeholder="需要鉴权时填写"
+                   aria-label="API Key temporária"
+                   placeholder="Preencha quando a autenticação for necessária"
                   onChange={(event) => { setApiKey(event.target.value) }}
                 />
               </label>
             )
             : null}
           {!canDiscover
-            ? <p className="dshAma-error">请先填写新路由的 baseURL 和 wire 协议。</p>
+             ? <p className="dshAma-error">Preencha primeiro a baseURL e o protocolo wire da nova rota.</p>
             : failure !== undefined
               ? (
                 <div className="dshAma-error">
-                  <p>provider 未返回模型：{failure}</p>
-                  <button type="button" className="dshAma-button" onClick={() => { void discover(apiKey) }}>重试</button>
+                   <p>O provider não retornou modelos: {failure}</p>
+                   <button type="button" className="dshAma-button" onClick={() => { void discover(apiKey) }}>Tentar novamente</button>
                 </div>
               )
               : busy
-                ? <p className="dshAma-hint">正在向 provider 获取模型…</p>
+                 ? <p className="dshAma-hint">Obtendo modelos do provider…</p>
                 : (
                   <>
                     <div className="dshAma-discoveryToolbar">
@@ -195,18 +195,18 @@ export function ProviderModelDiscoveryDialog(props: ProviderModelDiscoveryDialog
                         className="dshAma-input"
                         type="search"
                         value={query}
-                        placeholder="筛选模型 ID 或名称"
-                        aria-label="筛选模型"
+                         placeholder="Filtrar por ID ou nome do modelo"
+                         aria-label="Filtrar modelos"
                         onChange={(event) => { setQuery(event.target.value) }}
                       />
-                      <button type="button" className="dshAma-button" onClick={() => { void discover(apiKey) }}>重新发现</button>
+                       <button type="button" className="dshAma-button" onClick={() => { void discover(apiKey) }}>Descobrir novamente</button>
                     </div>
                     <div className="dshAma-discoveryList">
                       {visibleModels.map(model => {
                         const meta = [
                           model.name !== undefined && model.name !== model.id ? model.name : '',
-                          model.contextWindow === undefined ? '' : `上下文 ${formatCapacity(model.contextWindow)}`,
-                          model.maxTokens === undefined ? '' : `输出 ${formatCapacity(model.maxTokens)}`,
+                           model.contextWindow === undefined ? '' : `Contexto ${formatCapacity(model.contextWindow)}`,
+                           model.maxTokens === undefined ? '' : `Saída ${formatCapacity(model.maxTokens)}`,
                         ].filter(Boolean).join(' · ')
                         return (
                           <label key={model.id} className="dshAma-discoveryRow">
@@ -223,21 +223,21 @@ export function ProviderModelDiscoveryDialog(props: ProviderModelDiscoveryDialog
                             />
                             <span className="dshAma-discoveryModel">
                               <strong>{model.id}</strong>
-                              <small>{meta === '' ? 'provider 未提供额外信息' : meta}</small>
+                               <small>{meta === '' ? 'O provider não forneceu informações adicionais' : meta}</small>
                             </span>
-                            {existingIds.has(model.id) ? <span className="dshAma-muted">已配置</span> : null}
+                             {existingIds.has(model.id) ? <span className="dshAma-muted">Já configurado</span> : null}
                           </label>
                         )
                       })}
                       {visibleModels.length === 0
-                        ? <p className="dshAma-hint">没有可导入的模型。</p>
+                         ? <p className="dshAma-hint">Não há modelos para importar.</p>
                         : null}
                     </div>
                   </>
                 )}
         </div>
         <div className="dshAma-modalFoot">
-          <button type="button" className="dshAma-button" onClick={onClose}>取消</button>
+           <button type="button" className="dshAma-button" onClick={onClose}>Cancelar</button>
           <button
             type="button"
             className="dshAma-button dshAma-buttonPrimary"
@@ -248,7 +248,7 @@ export function ProviderModelDiscoveryDialog(props: ProviderModelDiscoveryDialog
               onAdopt(adopted)
               onClose()
             }}
-          >{`采用 ${String(picked.size)} 个模型`}</button>
+           >{`Adicionar ${String(picked.size)} modelos`}</button>
         </div>
       </div>
     </div>

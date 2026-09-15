@@ -55,7 +55,7 @@ async function errorReasonOf(response: Response): Promise<{ code: string, messag
   const body = await response.json().catch(() => undefined) as ErrorBody | undefined
   return {
     code: body?.error?.code ?? '',
-    message: body?.error?.message ?? `请求失败（HTTP ${String(response.status)}）`,
+    message: body?.error?.message ?? `Falha na solicitação (HTTP ${String(response.status)})`,
     entry: body?.error?.entry ?? '',
     files: Array.isArray(body?.error?.files)
       ? (body.error.files as unknown[]).filter((item): item is string => typeof item === 'string')
@@ -75,8 +75,8 @@ function localDateStamp(): string {
  */
 function describeConflictFiles(files: readonly string[]): string {
   if (files.length === 0) return '(o servidor não retornou uma lista detalhada)'
-  const head = files.slice(0, 5).join('、')
-  return files.length > 5 ? `${head} 等 ${String(files.length)} 个文件` : head
+  const head = files.slice(0, 5).join(', ')
+  return files.length > 5 ? `${head} e mais ${String(files.length)} arquivos` : head
 }
 
 /** Human size for a file count/bytes summary. */
@@ -165,7 +165,7 @@ export function PresetsSection(): ReactNode {
       }
       const body = (await response.json()) as { ok: boolean, value?: { entry: string, files: number } }
       if (body.ok === true && body.value !== undefined) {
-        setNotice(`已导入预设「${body.value.entry}」（${String(body.value.files)} 个文件），可在会话的预设选择器中选用`)
+        setNotice(`Predefinição "${body.value.entry}" importada (${String(body.value.files)} arquivos). Ela já pode ser usada no seletor da sessão.`)
         await load()
       } else {
         throw new Error('A resposta da importação não pôde ser reconhecida')
@@ -179,7 +179,7 @@ export function PresetsSection(): ReactNode {
 
   const onFileChosen = useCallback(async (file: File) => {
     if (file.size > MAX_UPLOAD_BYTES) {
-      setError('预设包超过 10MB 上限')
+      setError('O pacote de predefinição excede o limite de 10 MB')
       return
     }
     try {
@@ -209,7 +209,7 @@ export function PresetsSection(): ReactNode {
       anchor.click()
       anchor.remove()
       setTimeout(() => { URL.revokeObjectURL(url) }, 10_000)
-      setNotice(`已导出 dsh-config-backup-${localDateStamp()}.zip（密钥扫描未命中）`)
+      setNotice(`dsh-config-backup-${localDateStamp()}.zip exportado (nenhuma chave encontrada na verificação)`)
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : String(failure))
     } finally {
@@ -243,12 +243,12 @@ export function PresetsSection(): ReactNode {
       const body = (await response.json()) as { ok: boolean, value?: { written: number, unchanged: number, backups: readonly string[] } }
       if (body.ok === true && body.value !== undefined) {
         const { written, unchanged, backups } = body.value
-        const parts = [`已恢复 ${String(written)} 项配置`]
-        if (unchanged > 0) parts.push(`${String(unchanged)} 项无变化跳过`)
-        if (backups.length > 0) parts.push('原补丁层已自动备份')
-        setNotice(`${parts.join('，')}。依赖清单变更需重启应用后生效。`)
+        const parts = [`${String(written)} configurações restauradas`]
+        if (unchanged > 0) parts.push(`${String(unchanged)} sem alterações ignoradas`)
+        if (backups.length > 0) parts.push('camadas de patch originais copiadas automaticamente')
+        setNotice(`${parts.join(', ')}. Alterações na lista de dependências exigem reiniciar o aplicativo.`)
       } else {
-        throw new Error('导入响应无法识别')
+        throw new Error('A resposta da importação não pôde ser reconhecida')
       }
     } catch (failure) {
       setError(failure instanceof Error ? failure.message : String(failure))
@@ -259,7 +259,7 @@ export function PresetsSection(): ReactNode {
 
   const onBackupFileChosen = useCallback(async (file: File) => {
     if (file.size > MAX_BACKUP_UPLOAD_BYTES) {
-      setError('配置备份超过 20MB 上限')
+      setError('O backup da configuração excede o limite de 20 MB')
       return
     }
     try {
@@ -283,8 +283,8 @@ export function PresetsSection(): ReactNode {
         <div className="dshPresets-cardMain">
           <span className="dshPresets-entryName">Backup da configuração</span>
           <span className="dshPresets-hint">
-            导出或恢复当前配置：备份包含插件配置与补丁层；已自动扫描常见密钥形态，命中会拒绝导出——请勿手动放入凭据文件。
-            依赖清单中的本地 file: 路径会按原样恢复，换一台机器导入可能失效。
+            Exporte ou restaure a configuração atual. O backup inclui configurações de plugins e camadas de patch; chaves comuns são verificadas automaticamente e a exportação é recusada quando encontradas. Não coloque credenciais manualmente nos arquivos.
+            Caminhos locais file: da lista de dependências são restaurados sem alterações e podem não funcionar em outra máquina.
           </span>
         </div>
         <div className="dshPresets-cardActions">
@@ -292,22 +292,22 @@ export function PresetsSection(): ReactNode {
             type="button"
             className="dshPresets-button"
             disabled={busy}
-            aria-label="导出配置备份"
+            aria-label="Exportar backup da configuração"
             onClick={() => { void onBackupExport() }}
-          >导出配置备份</button>
+          >Exportar backup da configuração</button>
           <button
             type="button"
             className="dshPresets-button dshPresets-buttonPrimary"
             disabled={busy}
             onClick={() => { backupInputRef.current?.click() }}
-          >导入配置备份</button>
+          >Importar backup da configuração</button>
         </div>
       </div>
       <input
         ref={backupInputRef}
         type="file"
         accept=".zip"
-        aria-label="选择配置备份 zip 文件"
+        aria-label="Selecionar arquivo zip de backup da configuração"
         style={{ display: 'none' }}
         onChange={(event) => {
           const file = event.target.files?.[0]
@@ -317,27 +317,26 @@ export function PresetsSection(): ReactNode {
       />
 
       <p className="dshPresets-hint">
-        把本机的自定义 agent 预设打包为 .dshpreset 文件分享，或从文件导入。仅列出本机自定义预设；
-        内置预设随应用提供，不可导出。导入时会校验包结构与路径安全，写入本机自定义预设目录，
-        之后可在会话的预设选择器中选用。
+        Empacote predefinições de agente personalizadas em arquivos .dshpreset para compartilhar ou importe-as de um arquivo. Apenas predefinições personalizadas locais são listadas.
+        Predefinições integradas acompanham o aplicativo e não podem ser exportadas. A importação valida a estrutura e a segurança dos caminhos, grava no diretório local e disponibiliza a predefinição no seletor da sessão.
       </p>
 
       <div className="dshPresets-toolbar">
-        <span className="dshPresets-count">{data === null ? '' : `共 ${String(presets.length)} 个自定义预设`}</span>
+        <span className="dshPresets-count">{data === null ? '' : `${String(presets.length)} predefinições personalizadas`}</span>
         <div className="dshPresets-cardActions">
           <button
             type="button"
             className="dshPresets-button dshPresets-buttonPrimary"
             disabled={busy}
             onClick={() => { fileInputRef.current?.click() }}
-          >导入预设包</button>
+          >Importar pacote de predefinição</button>
         </div>
       </div>
       <input
         ref={fileInputRef}
         type="file"
         accept=".dshpreset"
-        aria-label="选择 .dshpreset 文件"
+        aria-label="Selecionar arquivo .dshpreset"
         style={{ display: 'none' }}
         onChange={(event) => {
           const file = event.target.files?.[0]
@@ -350,7 +349,7 @@ export function PresetsSection(): ReactNode {
         {data !== null && presets.length === 0
           ? (
             <div className="dshPresets-empty">
-              还没有可导出的自定义预设。在会话中复制一个现有预设即可创建，或从他人分享的 .dshpreset 文件导入。
+              Não há predefinições personalizadas para exportar. Copie uma predefinição existente em uma sessão para criar uma ou importe um arquivo .dshpreset compartilhado.
             </div>
           )
           : null}
@@ -358,14 +357,14 @@ export function PresetsSection(): ReactNode {
           <div key={summary.entry} className="dshPresets-card">
             <div className="dshPresets-cardMain">
               <span className="dshPresets-entryName">{summary.entry}</span>
-              <span className="dshPresets-meta">{String(summary.files)} 个文件 · {formatBytes(summary.bytes)}</span>
+              <span className="dshPresets-meta">{String(summary.files)} arquivos · {formatBytes(summary.bytes)}</span>
             </div>
             <div className="dshPresets-cardActions">
               <button
                 type="button"
                 className="dshPresets-button"
                 disabled={busy}
-                aria-label={`导出预设 ${summary.entry}`}
+                aria-label={`Exportar predefinição ${summary.entry}`}
                 onClick={() => { void onExport(summary.entry) }}
               >导出</button>
             </div>
@@ -373,13 +372,13 @@ export function PresetsSection(): ReactNode {
         ))}
       </div>
 
-      {data !== null && data.root !== '' ? <p className="dshPresets-path">预设目录：{data.root}</p> : null}
+      {data !== null && data.root !== '' ? <p className="dshPresets-path">Diretório de predefinições: {data.root}</p> : null}
 
       <ConfirmDialog
         open={pendingOverwrite !== null}
-        title={`覆盖预设「${pendingOverwrite?.entry ?? ''}」`}
-        message="本机已存在同名预设，覆盖导入将替换它的全部文件，且无法撤销。"
-        confirmLabel="覆盖导入"
+        title={`Substituir predefinição "${pendingOverwrite?.entry ?? ''}"`}
+        message="Já existe uma predefinição com o mesmo nome. A importação com substituição trocará todos os arquivos e não poderá ser desfeita."
+        confirmLabel="Importar e substituir"
         busy={busy}
         onConfirm={() => {
           if (pendingOverwrite === null) return
@@ -392,11 +391,11 @@ export function PresetsSection(): ReactNode {
 
       <ConfirmDialog
         open={pendingBackupOverwrite !== null}
-        title="覆盖现有配置"
+        title="Substituir configuração existente"
         message={pendingBackupOverwrite === null
           ? ''
-          : `备份中的以下文件与本机当前配置不同，覆盖导入将替换它们（原补丁层会自动备份），且无法撤销：${describeConflictFiles(pendingBackupOverwrite.files)}`}
-        confirmLabel="覆盖导入"
+           : `Os arquivos a seguir no backup diferem da configuração local. A importação substituirá esses arquivos, fará backup das camadas de patch originais e não poderá ser desfeita: ${describeConflictFiles(pendingBackupOverwrite.files)}`}
+        confirmLabel="Importar e substituir"
         busy={busy}
         onConfirm={() => {
           if (pendingBackupOverwrite === null) return

@@ -13,7 +13,7 @@ import { adoptStyles } from './client/styles.ts'
 
 export const inject = ['slots']
 const SECTION_ID = 'dsh-app-hooks'
-const SECTION_LABEL = 'Hooks'
+const SECTION_LABEL = 'Ganchos'
 
 export function apply(ctx: ClientContext): void {
   adoptStyles()

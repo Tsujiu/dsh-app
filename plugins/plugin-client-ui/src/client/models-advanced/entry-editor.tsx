@@ -159,20 +159,20 @@ function ReasoningEditor(props: {
   const spellable = Object.entries(dict)
   return (
     <div className="dshAma-field">
-      <span className="dshAma-fieldLabel">推理等级</span>
+       <span className="dshAma-fieldLabel">Nível de raciocínio</span>
       <div className="dshAma-inline">
         <select
           className="dshAma-input dshAma-select"
           value={mode}
-          aria-label={`推理等级模式 ${index + 1}`}
+           aria-label={`Modo de raciocínio ${index + 1}`}
           disabled={disabled}
           onChange={(event) => { setMode(event.target.value as 'inherit' | 'off' | 'custom') }}
         >
           <option value="inherit">
-            {handDeclared ? '不声明推理（选择器将无推理档）' : '继承官方目录能力'}
+             {handDeclared ? 'Não declarar raciocínio (sem níveis no seletor)' : 'Herdar capacidade do catálogo oficial'}
           </option>
-          <option value="off">明确禁用推理</option>
-          <option value="custom">自定义支持的级别</option>
+           <option value="off">Desativar raciocínio explicitamente</option>
+           <option value="custom">Personalizar níveis compatíveis</option>
         </select>
         {mode === 'inherit' && handDeclared
           ? (
@@ -180,7 +180,7 @@ function ReasoningEditor(props: {
               type="button" className="dshAma-button dshAma-buttonPrimary"
               disabled={disabled}
               onClick={enableReasoning}
-            >启用推理（low/medium/high）</button>
+            >Ativar raciocínio (low/medium/high)</button>
           )
           : null}
       </div>
@@ -189,25 +189,25 @@ function ReasoningEditor(props: {
           handDeclared
             ? (
               <p className="dshAma-error">
-                手写路由没有官方目录可继承：不写 reasoningEfforts 时，聊天模型选择器
-                <b>不会出现推理档</b>。请点「启用推理」，或改为「自定义支持的级别」后保存。
+                 A rota manual não possui catálogo oficial para herdar: sem reasoningEfforts, o seletor de modelos
+                 <b> não mostrará níveis de raciocínio</b>. Clique em "Ativar raciocínio" ou escolha "Personalizar níveis" e salve.
               </p>
             )
             : (
               <p className="dshAma-hint">
-                不写入 reasoningEfforts：沿用官方目录中同 ID 模型的推理能力；
-                目录没有该模型或目录本身无推理时，选择器同样不会出现推理档。
+                 Sem gravar reasoningEfforts, será usada a capacidade do modelo com o mesmo ID no catálogo oficial;
+                 se o modelo não existir ou não oferecer raciocínio, o seletor também não mostrará níveis.
               </p>
             )
         )
         : null}
       {mode === 'off'
-        ? <p className="dshAma-hint">写入 false：即使目录或会话声明了推理，本模型也按非推理请求发送。</p>
+         ? <p className="dshAma-hint">Grava false: mesmo que o catálogo ou a sessão declare raciocínio, este modelo será usado sem raciocínio.</p>
         : null}
       {mode === 'custom'
         ? (
           <>
-            <div className="dshAma-levelGrid" role="group" aria-label={`推理级别 ${index + 1}`}>
+             <div className="dshAma-levelGrid" role="group" aria-label={`Níveis de raciocínio ${index + 1}`}>
               {REASONING_LEVELS.map(level => (
                 <label key={level} className="dshAma-check">
                   <input
@@ -221,7 +221,7 @@ function ReasoningEditor(props: {
               ))}
             </div>
             <div className="dshAma-hint">
-              勾选本模型支持的档位。仅 off 不能构成有效配置；wire 拼写默认同名，可按网关改写。
+               Marque os níveis compatíveis com este modelo. Apenas off não forma uma configuração válida; a grafia wire usa o mesmo nome por padrão e pode ser ajustada por gateway.
             </div>
           </>
         )
@@ -229,7 +229,7 @@ function ReasoningEditor(props: {
       {mode === 'custom' && spellable.length > 0
         ? (
           <div className="dshAma-field">
-            <span className="dshAma-fieldLabel">发送给网关的拼写（默认同名）</span>
+             <span className="dshAma-fieldLabel">Nome enviado ao gateway (igual por padrão)</span>
             {spellable.map(([level, spelling]) => (
               <div key={level} className="dshAma-kvRow">
                 <span className="dshAma-kvKey">{level}</span>
@@ -237,8 +237,8 @@ function ReasoningEditor(props: {
                   className="dshAma-input"
                   type="text"
                   value={spelling ?? ''}
-                  placeholder="（不发参数）"
-                  aria-label={`${level} 的 wire 拼写`}
+                   placeholder="(não enviar parâmetro)"
+                   aria-label={`Nome wire de ${level}`}
                   disabled={disabled}
                   onChange={(event) => {
                     const raw = event.target.value.trim()
@@ -247,7 +247,7 @@ function ReasoningEditor(props: {
                 />
                 <button
                   type="button" className="dshAma-iconButton"
-                  aria-label={`移除级别 ${level}`}
+                   aria-label={`Remover nível ${level}`}
                   disabled={disabled}
                   onClick={() => { toggleLevel(level, false) }}
                 ><IconTrash /></button>
@@ -300,8 +300,8 @@ function CompatEditor(props: {
           disabled={disabled}
           onChange={(event) => { setKey(field.key, event.target.value === 'true') }}
         >
-          <option value="true">启用</option>
-          <option value="false">禁用</option>
+           <option value="true">Ativado</option>
+           <option value="false">Desativado</option>
         </select>
       )
     }
@@ -313,7 +313,7 @@ function CompatEditor(props: {
         disabled={disabled}
         onChange={(event) => { setKey(field.key, event.target.value) }}
       >
-        <option value="">（选择取值）</option>
+         <option value="">(selecione um valor)</option>
         {field.kind.enum.map(choice => <option key={choice} value={choice}>{choice}</option>)}
       </select>
     )
@@ -332,24 +332,24 @@ function CompatEditor(props: {
 
   return (
     <div className="dshAma-field">
-      <span className="dshAma-fieldLabel">兼容开关（compat）</span>
+             <span className="dshAma-fieldLabel">Opções de compatibilidade (compat)</span>
       <div className="dshAma-inline">
         <select
           className="dshAma-input dshAma-select"
           value=""
-          aria-label={`应用兼容预设 ${index + 1}`}
+           aria-label={`Aplicar predefinição de compatibilidade ${index + 1}`}
           disabled={disabled}
           onChange={(event) => {
             if (event.target.value !== '') applyPreset(event.target.value)
           }}
         >
-          <option value="">应用家族预设…</option>
+           <option value="">Aplicar predefinição da família…</option>
           {COMPAT_PRESETS.map(preset => <option key={preset.id} value={preset.id}>{preset.label}</option>)}
         </select>
         <select
           className="dshAma-input dshAma-select"
           value=""
-          aria-label={`添加兼容开关 ${index + 1}`}
+           aria-label={`Adicionar opção de compatibilidade ${index + 1}`}
           disabled={disabled || unusedKeys.length === 0}
           onChange={(event) => {
             const field = fields.find(candidate => candidate.key === event.target.value)
@@ -357,26 +357,26 @@ function CompatEditor(props: {
             setKey(field.key, field.kind === 'boolean' ? false : field.kind.enum[0])
           }}
         >
-          {unusedKeys.length === 0 ? <option value="">已全部添加</option> : <option value="">添加开关…</option>}
+           {unusedKeys.length === 0 ? <option value="">Tudo já foi adicionado</option> : <option value="">Adicionar opção…</option>}
           {unusedKeys.map(field => <option key={field.key} value={field.key}>{field.label}</option>)}
         </select>
         {api === undefined || api === ''
-          ? <span className="dshAma-muted">协议未知</span>
+           ? <span className="dshAma-muted">Protocolo desconhecido</span>
           : <span className="dshAma-muted">{api}</span>}
       </div>
       <div className="dshAma-hint">
         {api === undefined || api === ''
-          ? '当前未声明 wire 协议，列表合并了各协议可配置项；在路由上声明 api 后会按协议过滤。'
-          : `仅显示 ${api} 协议支持的开关；其它协议的键无法保存。`}
-        {' '}models.dev 不提供这些网关信息；未知键以手写 settings.yaml 为准。
+           ? 'Nenhum protocolo wire foi declarado. A lista reúne opções de todos os protocolos; declarar api na rota filtra por protocolo.'
+           : `Exibindo apenas opções compatíveis com o protocolo ${api}; chaves de outros protocolos não podem ser salvas.`}
+        {' '}O models.dev não fornece essas informações do gateway; use settings.yaml manualmente para chaves desconhecidas.
       </div>
       {invalidKeys.map(key => (
         <div key={key} className="dshAma-kvRow">
           <span className="dshAma-kvKey dshAma-invalid" title={key}>{key}</span>
-          <span className="dshAma-readonlyValue">不适用于 {api ?? '当前'} 协议</span>
+           <span className="dshAma-readonlyValue">Não se aplica ao protocolo {api ?? 'atual'}</span>
           <button
             type="button" className="dshAma-iconButton dshAma-iconButtonDanger"
-            aria-label={`移除不适用开关 ${key}`}
+             aria-label={`Remover opção incompatível ${key}`}
             disabled={disabled}
             onClick={() => { removeKey(key) }}
           >×</button>
@@ -393,7 +393,7 @@ function CompatEditor(props: {
               : valueControl(meta, current)}
             <button
               type="button" className="dshAma-iconButton"
-              aria-label={`移除兼容开关 ${key}`}
+               aria-label={`Remover opção de compatibilidade ${key}`}
               disabled={disabled}
               onClick={() => { removeKey(key) }}
             ><IconTrash /></button>
@@ -452,60 +452,60 @@ export function ModelEntryEditor(props: ModelEntryEditorProps): ReactNode {
         ? null
         : (
           <label className="dshAma-field">
-            <span className="dshAma-fieldLabel">模型 ID（wire 名称）</span>
+             <span className="dshAma-fieldLabel">ID do modelo (nome wire)</span>
             <input
               className="dshAma-input"
               type="text"
               value={stringAt('id')}
-              placeholder="如 glm-5.2"
-              aria-label={`模型 ID ${index + 1}`}
+               placeholder="ex.: glm-5.2"
+               aria-label={`ID do modelo ${index + 1}`}
               disabled={disabled}
               onChange={(event) => { onChange({ ...row, id: event.target.value }) }}
             />
           </label>
         )}
       <label className="dshAma-field">
-        <span className="dshAma-fieldLabel">显示名称</span>
+         <span className="dshAma-fieldLabel">Nome de exibição</span>
         <input
           className="dshAma-input"
           type="text"
           value={stringAt('name')}
-          placeholder="（默认同 ID）"
-          aria-label={`显示名称 ${index + 1}`}
+           placeholder="(igual ao ID por padrão)"
+             aria-label={`Nome de exibição ${index + 1}`}
           disabled={disabled}
           onChange={(event) => { setString('name', event.target.value) }}
         />
       </label>
       <div className="dshAma-capacityRow">
         <label className="dshAma-field">
-          <span className="dshAma-fieldLabel">上下文窗口</span>
+           <span className="dshAma-fieldLabel">Janela de contexto</span>
           <input
             className="dshAma-input"
             type="text"
             inputMode="numeric"
             value={contextText}
-            placeholder="如 1000000 或 1M"
-            aria-label={`上下文窗口 ${index + 1}`}
+             placeholder="ex.: 1000000 ou 1M"
+             aria-label={`Janela de contexto ${index + 1}`}
             disabled={disabled}
             onChange={(event) => { editCapacity('contextWindow', event.target.value) }}
           />
         </label>
         <label className="dshAma-field">
-          <span className="dshAma-fieldLabel">输出上限</span>
+           <span className="dshAma-fieldLabel">Limite de saída</span>
           <input
             className="dshAma-input"
             type="text"
             inputMode="numeric"
             value={maxTokensText}
-            placeholder="如 131072 或 128K"
-            aria-label={`输出上限 ${index + 1}`}
+             placeholder="ex.: 131072 ou 128K"
+             aria-label={`Limite de saída ${index + 1}`}
             disabled={disabled}
             onChange={(event) => { editCapacity('maxTokens', event.target.value) }}
           />
         </label>
       </div>
       <div className="dshAma-field">
-        <span className="dshAma-fieldLabel">输入模态</span>
+         <span className="dshAma-fieldLabel">Modalidades de entrada</span>
         <div className="dshAma-inline">
           {MODALITIES.map(modality => (
             <label key={modality} className="dshAma-check">
@@ -515,11 +515,11 @@ export function ModelEntryEditor(props: ModelEntryEditorProps): ReactNode {
                 disabled={disabled}
                 onChange={() => { toggleModality(modality) }}
               />
-              <span>{modality === 'text' ? '文本' : '图片'}</span>
+               <span>{modality === 'text' ? 'Texto' : 'Imagem'}</span>
             </label>
           ))}
         </div>
-        <div className="dshAma-hint">视觉模型必须显式勾选“图片”；全部不勾 = 继承路由/目录默认。</div>
+        <div className="dshAma-hint">Modelos visuais precisam marcar explicitamente "Imagem"; não marcar nada herda o padrão da rota ou do catálogo.</div>
       </div>
       <ReasoningEditor
         index={index}

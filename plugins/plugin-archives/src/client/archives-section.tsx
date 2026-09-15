@@ -193,7 +193,7 @@ export function ArchivesSection(): ReactNode {
     const bytes = group.sessions.reduce((total, session) => total + session.sizeBytes, 0)
     const label = group.sessions.length === 1 && group.sessions[0].title !== ''
       ? `“${group.sessions[0].title}”`
-      : `“${group.title}”的 ${ids.length} 个会话`
+      : `${ids.length} sessões de "${group.title}"`
     setConfirm({ kind: 'delete', ids, label, bytes })
   }, [])
 
@@ -211,19 +211,19 @@ export function ArchivesSection(): ReactNode {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({}),
         })
-        setNotice({ kind: 'ok', text: `已清理 ${result.pruned} 条无效归档记录` })
+        setNotice({ kind: 'ok', text: `${result.pruned} registros de arquivo inválidos foram limpos` })
       } else {
         const result = await fetchJson<ArchiveDeleteResult>('/plugins/@dsh-app/plugin-archives/api/delete', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ ids: confirm.ids }),
         })
-        const parts = [`已删除 ${result.deleted.length} 个会话，释放 ${fmtBytes(result.freedBytes)}`]
+        const parts = [`${result.deleted.length} sessões excluídas; ${fmtBytes(result.freedBytes)} liberados`]
         if (result.deleted.length > 0) {
           // The archive-set records are kept on purpose — dropping them would
           // un-hide the session in the client's stale list snapshot. Say so,
           // since the header's stale-record hint just grew by these ids.
-          parts.push('归档记录已保留，可用上方「清理」移除')
+          parts.push('Os registros de arquivo foram mantidos; use "Limpar" acima para removê-los')
         }
         if (result.skipped.length > 0) {
           const counts = new Map<string, number>()
@@ -231,7 +231,7 @@ export function ArchivesSection(): ReactNode {
           const skippedText = [...counts]
             .map(([reason, count]) => `${SKIP_REASONS[reason] ?? reason} × ${count}`)
             .join('、')
-          parts.push(`跳过 ${result.skipped.length} 个（${skippedText}）`)
+          parts.push(`${result.skipped.length} ignorados (${skippedText})`)
         }
         setNotice(result.skipped.length > 0 ? { kind: 'warn', text: parts.join('；') } : { kind: 'ok', text: parts[0] })
       }
@@ -264,7 +264,7 @@ export function ArchivesSection(): ReactNode {
   if (list === null) {
     return (
       <div className="dshar_section">
-        <h2 className="dshar_title">会话归档</h2>
+        <h2 className="dshar_title">Arquivos de sessões</h2>
         <div className="dshar_empty">Lendo sessões arquivadas…</div>
       </div>
     )
@@ -281,8 +281,8 @@ export function ArchivesSection(): ReactNode {
             : `${list.archivedCount} sessões · ${fmtBytes(list.totalBytes)} · ${list.groups.length} projetos`}
         </span>
         {list.staleCount > 0 && (
-          <span className="dshar_staleHint" title="归档记录仍在，但其会话日志已不在磁盘上；清理只会移除这些无效记录">
-            另有 {list.staleCount} 条归档记录无日志
+          <span className="dshar_staleHint" title="O registro do arquivo permanece, mas o log da sessão não está no disco; limpar remove apenas esses registros inválidos">
+            Há mais {list.staleCount} registros sem log
             <button
               type="button"
               className="dshar_button"
@@ -330,18 +330,18 @@ export function ArchivesSection(): ReactNode {
               </div>
             ))}
           {!searchResults.agentToolAvailable && (
-            <div className="dshar_notice dshar_noticeWarn">agent 侧的 session_search 工具尚未挂载（该包暂未进入内核运行时，模型无法主动检索历史会话），页面搜索不受影响。</div>
+        <div className="dshar_notice dshar_noticeWarn">A ferramenta session_search do agente ainda não está montada; o modelo não pode pesquisar sessões antigas, mas a busca desta página continua funcionando.</div>
           )}
         </div>
       )}
 
       {confirm !== null && (
-        <div className="dshar_confirm" role="alertdialog" aria-label={confirm.kind === 'prune' ? '确认清理归档记录' : '确认删除归档会话'}>
+        <div className="dshar_confirm" role="alertdialog" aria-label={confirm.kind === 'prune' ? 'Confirmar limpeza dos registros' : 'Confirmar exclusão da sessão arquivada'}>
           {confirm.kind === 'prune' ? (
-            <span>即将清理 {confirm.count} 条无日志的归档记录，仅移除记录本身，不影响任何会话数据。</span>
+            <span>Serão limpos {confirm.count} registros sem log. Apenas os registros serão removidos; nenhum dado de sessão será afetado.</span>
           ) : (
             <span>
-              即将删除{confirm.label}（约 {fmtBytes(confirm.bytes)}），删除后不可恢复。
+              {confirm.label} será excluída ({fmtBytes(confirm.bytes)}). Esta ação não pode ser desfeita.
             </span>
           )}
           <span className="dshar_confirmActions">

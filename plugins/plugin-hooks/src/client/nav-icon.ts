@@ -13,7 +13,7 @@ const NAV_ICON_SVG = [
   '</svg>',
 ].join('')
 const NAV_CELL_CLASS = 'dshHkNav'
-const NAV_LABEL = 'Hooks'
+const NAV_LABEL = 'Ganchos'
 export function mountNavIconPatch(): () => void {
   const style = document.createElement('style')
   const maskUrl = `url("data:image/svg+xml,${encodeURIComponent(NAV_ICON_SVG)}")`

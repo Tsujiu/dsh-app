@@ -172,7 +172,7 @@ export function HooksSection(): ReactNode {
 
   return (
     <div className="dshHk-section">
-      <p className="dshHk-title">Hooks</p>
+      <p className="dshHk-title">Ganchos</p>
       <p className="dshHk-hint">
         Reutilize uma configuração existente de hooks do Claude Code / Codex ou escreva uma aqui: hooks de comando para SessionStart, envio de prompts, antes/depois de chamadas de ferramentas e Stop entram em vigor automaticamente.
         Os comandos são executados localmente; confirme que a origem é confiável. Eles são montados imediatamente após o salvamento.
@@ -183,126 +183,126 @@ export function HooksSection(): ReactNode {
 
       {draft !== null ? (
         <form className="dshHk-form" onSubmit={(e) => { e.preventDefault(); void onSave() }}>
-          <p className="dshHk-formTitle">{draft.id === null ? '添加 Hook 配置' : '编辑 Hook 配置'}</p>
+          <p className="dshHk-formTitle">{draft.id === null ? 'Adicionar configuração de Hook' : 'Editar configuração de Hook'}</p>
           <div className="dshHk-row">
             <div className="dshHk-field">
-              <span className="dshHk-label">类型</span>
-              <div className="dshHk-radioGroup" role="radiogroup" aria-label="类型">
-                <label><input type="radio" name="dshHkDialect" checked={draft.dialect === 'native'} disabled={busy} onChange={() => { setDraft({ ...draft, dialect: 'native' }) }} />DSH 原生（推荐）</label>
-                <label><input type="radio" name="dshHkDialect" checked={draft.dialect === 'claude-code'} disabled={busy} onChange={() => { setDraft({ ...draft, dialect: 'claude-code' }) }} />Claude Code 兼容</label>
-                <label><input type="radio" name="dshHkDialect" checked={draft.dialect === 'codex'} disabled={busy} onChange={() => { setDraft({ ...draft, dialect: 'codex' }) }} />Codex 兼容</label>
+              <span className="dshHk-label">Tipo</span>
+              <div className="dshHk-radioGroup" role="radiogroup" aria-label="Tipo">
+                <label><input type="radio" name="dshHkDialect" checked={draft.dialect === 'native'} disabled={busy} onChange={() => { setDraft({ ...draft, dialect: 'native' }) }} />DSH nativo (recomendado)</label>
+                <label><input type="radio" name="dshHkDialect" checked={draft.dialect === 'claude-code'} disabled={busy} onChange={() => { setDraft({ ...draft, dialect: 'claude-code' }) }} />Compatível com Claude Code</label>
+                <label><input type="radio" name="dshHkDialect" checked={draft.dialect === 'codex'} disabled={busy} onChange={() => { setDraft({ ...draft, dialect: 'codex' }) }} />Compatível com Codex</label>
               </div>
-              <span className="dshHk-fieldHint">DSH 原生为应用自有格式，规则更简单直观；兼容格式用于复用已有的 Claude Code / Codex hooks 配置文件。应用只读取/托管配置，不会写入它们的安装目录。</span>
+              <span className="dshHk-fieldHint">O formato nativo do DSH pertence ao aplicativo e tem regras mais simples. Os formatos compatíveis reutilizam arquivos de hooks do Claude Code ou Codex. O aplicativo apenas lê e gerencia a configuração; não grava nos diretórios de instalação.</span>
             </div>
           </div>
 
           {draft.dialect !== 'native' && (
             <div className="dshHk-field">
-              <span className="dshHk-label">配置来源</span>
-              <div className="dshHk-radioGroup" role="radiogroup" aria-label="配置来源">
-                <label><input type="radio" name="dshHkSource" checked={draft.configSource === 'file'} disabled={busy} onChange={() => { setDraft({ ...draft, configSource: 'file' }) }} />导入已有配置</label>
-                <label><input type="radio" name="dshHkSource" checked={draft.configSource === 'inline'} disabled={busy} onChange={() => { setDraft({ ...draft, configSource: 'inline' }) }} />手动编写</label>
+              <span className="dshHk-label">Origem da configuração</span>
+              <div className="dshHk-radioGroup" role="radiogroup" aria-label="Origem da configuração">
+                <label><input type="radio" name="dshHkSource" checked={draft.configSource === 'file'} disabled={busy} onChange={() => { setDraft({ ...draft, configSource: 'file' }) }} />Importar configuração existente</label>
+                <label><input type="radio" name="dshHkSource" checked={draft.configSource === 'inline'} disabled={busy} onChange={() => { setDraft({ ...draft, configSource: 'inline' }) }} />Escrever manualmente</label>
               </div>
             </div>
           )}
 
           {draft.dialect === 'native' ? (
             <div className="dshHk-field">
-              <span className="dshHk-label">规则配置</span>
+              <span className="dshHk-label">Configuração das regras</span>
               <textarea className="dshHk-input" style={{ minHeight: '220px', fontFamily: 'ui-monospace,monospace', whiteSpace: 'pre', overflowX: 'auto' }} value={draft.configContent} spellCheck={false} disabled={busy}
                 placeholder={NATIVE_PLACEHOLDER}
                 onChange={(e) => { setDraft({ ...draft, configContent: e.target.value }) }} />
               <span className="dshHk-fieldHint">
-                规则字段：name（名称）、on（时机：pre-tool-use / post-tool-use / prompt-submit / session-start）、matcher（可选正则，匹配工具名）、action（block = 拦截，context = 注入提醒上下文）、message（拦截原因或提醒文本）。
+                 Campos: name (nome), on (momento: pre-tool-use / post-tool-use / prompt-submit / session-start), matcher (regex opcional para nome da ferramenta), action (block = bloquear, context = inserir contexto de aviso), message (motivo do bloqueio ou texto do aviso).
               </span>
             </div>
           ) : draft.configSource === 'file' ? (
             <div className="dshHk-field dshHk-fieldGrow">
-              <span className="dshHk-label">配置文件路径</span>
-              <input className="dshHk-input" value={draft.configPath} placeholder="例如 D:/proj/.claude/hooks.json" disabled={busy} onChange={(e) => { setDraft({ ...draft, configPath: e.target.value }) }} />
-              <span className="dshHk-fieldHint">指向你已有的 hooks.json；应用只读取该文件，不修改它。</span>
+               <span className="dshHk-label">Caminho do arquivo de configuração</span>
+              <input className="dshHk-input" value={draft.configPath} placeholder="ex.: D:/proj/.claude/hooks.json" disabled={busy} onChange={(e) => { setDraft({ ...draft, configPath: e.target.value }) }} />
+               <span className="dshHk-fieldHint">Aponte para um hooks.json existente; o aplicativo apenas lê o arquivo e não o modifica.</span>
             </div>
           ) : (
             <div className="dshHk-field">
-              <span className="dshHk-label">配置内容</span>
+               <span className="dshHk-label">Conteúdo da configuração</span>
               <textarea className="dshHk-input" style={{ minHeight: '200px', fontFamily: 'ui-monospace,monospace', whiteSpace: 'pre', overflowX: 'auto' }} value={draft.configContent} spellCheck={false} disabled={busy}
                 placeholder={'{\n  "hooks": {\n    "Stop": [\n      { "hooks": [{ "type": "command", "command": "echo done" }] }\n    ]\n  }\n}'}
                 onChange={(e) => { setDraft({ ...draft, configContent: e.target.value }) }} />
-              <span className="dshHk-fieldHint">直接编写或粘贴 hooks.json 内容；保存后由应用托管，无需手动管理文件。</span>
+               <span className="dshHk-fieldHint">Escreva ou cole o conteúdo do hooks.json; depois de salvar, o aplicativo gerenciará o conteúdo sem exigir manutenção manual do arquivo.</span>
             </div>
           )}
 
           {draft.dialect === 'claude-code' && (
             <div className="dshHk-row">
               <div className="dshHk-field dshHk-fieldGrow">
-                <span className="dshHk-label">插件根目录（可选）</span>
+                 <span className="dshHk-label">Diretório raiz do plugin (opcional)</span>
                 <input className="dshHk-input" value={draft.pluginRoot} disabled={busy} onChange={(e) => { setDraft({ ...draft, pluginRoot: e.target.value }) }} />
-                <span className="dshHk-fieldHint">命令中引用插件路径时替换为此值</span>
+                 <span className="dshHk-fieldHint">Substitui este valor quando um comando referencia o caminho do plugin</span>
               </div>
               <div className="dshHk-field dshHk-fieldGrow">
-                <span className="dshHk-label">项目目录（可选）</span>
+                 <span className="dshHk-label">Diretório do projeto (opcional)</span>
                 <input className="dshHk-input" value={draft.projectDir} disabled={busy} onChange={(e) => { setDraft({ ...draft, projectDir: e.target.value }) }} />
-                <span className="dshHk-fieldHint">命令中引用项目路径时替换为此值；默认为会话工作区</span>
+                 <span className="dshHk-fieldHint">Substitui este valor quando um comando referencia o caminho do projeto; o padrão é o workspace da sessão</span>
               </div>
             </div>
           )}
           {draft.dialect === 'codex' && (
             <div className="dshHk-field dshHk-fieldGrow">
-              <span className="dshHk-label">模型名（可选）</span>
-              <input className="dshHk-input" value={draft.model} placeholder="例如 deepseek-v4" disabled={busy} onChange={(e) => { setDraft({ ...draft, model: e.target.value }) }} />
-              <span className="dshHk-fieldHint">Codex 事件中 stamp 的模型名</span>
+               <span className="dshHk-label">Nome do modelo (opcional)</span>
+              <input className="dshHk-input" value={draft.model} placeholder="ex.: deepseek-v4" disabled={busy} onChange={(e) => { setDraft({ ...draft, model: e.target.value }) }} />
+               <span className="dshHk-fieldHint">Nome do modelo gravado nos eventos Codex</span>
             </div>
           )}
           <div className="dshHk-row">
             <div className="dshHk-field">
-              <span className="dshHk-label">默认超时 ms（可选）</span>
+               <span className="dshHk-label">Tempo limite padrão em ms (opcional)</span>
               <input className="dshHk-input" value={draft.defaultTimeoutMs} placeholder="600000" disabled={busy} onChange={(e) => { setDraft({ ...draft, defaultTimeoutMs: e.target.value }) }} />
             </div>
             <div className="dshHk-field">
-              <span className="dshHk-label">stderr 摘要上限（可选）</span>
+               <span className="dshHk-label">Limite do resumo stderr (opcional)</span>
               <input className="dshHk-input" value={draft.stderrSummaryMaxChars} placeholder="500" disabled={busy} onChange={(e) => { setDraft({ ...draft, stderrSummaryMaxChars: e.target.value }) }} />
             </div>
           </div>
           <div className="dshHk-formActions">
-            <button type="submit" className="dshHk-button dshHk-buttonPrimary" disabled={busy}>{busy ? '保存中…' : draft.id === null ? '添加并挂载' : '保存并重新挂载'}</button>
-            <button type="button" className="dshHk-button" disabled={busy} onClick={() => { setDraft(null); setError(undefined) }}>取消</button>
+            <button type="submit" className="dshHk-button dshHk-buttonPrimary" disabled={busy}>{busy ? 'Salvando…' : draft.id === null ? 'Adicionar e montar' : 'Salvar e montar novamente'}</button>
+            <button type="button" className="dshHk-button" disabled={busy} onClick={() => { setDraft(null); setError(undefined) }}>Cancelar</button>
           </div>
         </form>
       ) : (
         <div className="dshHk-toolbar">
-          <span className="dshHk-count">{data === null ? '' : `共 ${String(data.bridges.length)} 个配置`}</span>
-          <button type="button" className="dshHk-button dshHk-buttonPrimary" disabled={busy || (data !== null && !data.enabled)} onClick={() => { setDraft(emptyDraft()); setError(undefined) }}>添加 Hook 配置</button>
+          <span className="dshHk-count">{data === null ? '' : `${String(data.bridges.length)} configurações`}</span>
+          <button type="button" className="dshHk-button dshHk-buttonPrimary" disabled={busy || (data !== null && !data.enabled)} onClick={() => { setDraft(emptyDraft()); setError(undefined) }}>Adicionar configuração de Hook</button>
         </div>
       )}
 
       <div className="dshHk-list">
-        {sorted.length === 0 && draft === null ? <div className="dshHk-empty">还没有配置 Hook。可以导入已有的 hooks.json，或直接手动编写。</div> : null}
+        {sorted.length === 0 && draft === null ? <div className="dshHk-empty">Nenhuma configuração de Hook. Importe um hooks.json existente ou escreva uma manualmente.</div> : null}
         {sorted.map((view) => {
           const badge = STATUS_BADGE[view.status.state] ?? STATUS_BADGE.disabled
           return (
             <div key={view.id} className="dshHk-card">
               <div className="dshHk-cardHead">
-                <span className="dshHk-dialect">{view.dialect === 'native' ? 'DSH 原生' : view.dialect}</span>
-                <span className="dshHk-badge">{view.configSource === 'inline' ? '在线编写' : '文件'}</span>
+                <span className="dshHk-dialect">{view.dialect === 'native' ? 'DSH nativo' : view.dialect}</span>
+                <span className="dshHk-badge">{view.configSource === 'inline' ? 'Escrito no app' : 'Arquivo'}</span>
                 <span className={badge.className}>{badge.label}</span>
               </div>
               {view.status.message !== undefined ? <div className="dshHk-warning">{view.status.message}</div> : null}
               <div className="dshHk-meta">{view.configPath}</div>
               <div className="dshHk-cardActions">
-                <button type="button" className="dshHk-toggle" role="switch" aria-checked={view.enabled} aria-label="启用/停用" disabled={busy} onClick={() => { void onToggle(view) }} />
-                <button type="button" className="dshHk-button" disabled={busy} onClick={() => { setDraft(draftFromView(view)) }}>编辑</button>
-                <button type="button" className="dshHk-button dshHk-buttonDanger" disabled={busy} onClick={() => { setConfirmTarget(view) }}>删除</button>
+                <button type="button" className="dshHk-toggle" role="switch" aria-checked={view.enabled} aria-label="Ativar/desativar" disabled={busy} onClick={() => { void onToggle(view) }} />
+                <button type="button" className="dshHk-button" disabled={busy} onClick={() => { setDraft(draftFromView(view)) }}>Editar</button>
+                <button type="button" className="dshHk-button dshHk-buttonDanger" disabled={busy} onClick={() => { setConfirmTarget(view) }}>Excluir</button>
               </div>
             </div>
           )
         })}
       </div>
-      {data !== null ? <p className="dshHk-path" title={data.filePath}>配置文件：{data.filePath}</p> : null}
+      {data !== null ? <p className="dshHk-path" title={data.filePath}>Arquivo de configuração: {data.filePath}</p> : null}
       <ConfirmDialog
         open={confirmTarget !== null}
-        title="删除 Hook 配置"
-        message="该配置将停止运行，配置文件中的条目一并删除。"
-        confirmLabel="删除"
+        title="Excluir configuração de Hook"
+        message="A configuração deixará de ser executada e a entrada correspondente será removida do arquivo."
+        confirmLabel="Excluir"
         busy={busy}
         onConfirm={() => { if (confirmTarget !== null) void onDelete(confirmTarget) }}
         onClose={() => { setConfirmTarget(null) }}

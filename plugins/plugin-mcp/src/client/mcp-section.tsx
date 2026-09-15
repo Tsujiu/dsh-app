@@ -137,7 +137,7 @@ function draftToExternal(draft: Draft): string {
  * Parse the JSON editor's text into an updated draft. Accepts a bare
  * `{"name": {...}}` fragment (the editor's own serialization) or a wrapped
  * `{"mcpServers": {...}}` paste — the latter only when it holds exactly one
- * server, because the edit dialog is one server's editor (use 导入 JSON for
+ * server, because the edit dialog is one server's editor (use Import JSON for
  * bulk). Throws Error with a zh-CN reason.
  */
 function draftFromJson(text: string, previous: Draft): Draft {
@@ -330,9 +330,9 @@ export function McpSection(): ReactNode {
         setImportOpen(false)
         setImportText('')
         const renamedNote = report.renamed.length > 0
-          ? `（已自动改名：${report.renamed.map(entry => `${entry.from} → ${entry.to}`).join('、')}）`
+          ? ` (renomeados automaticamente: ${report.renamed.map(entry => `${entry.from} → ${entry.to}`).join(', ')})`
           : ''
-        setNotice(`已导入 ${String(report.imported.length)} 个服务器并挂载${renamedNote}`)
+        setNotice(`${String(report.imported.length)} servidores importados e montados${renamedNote}`)
       }
     } catch {
       // post() already surfaced the error banner.
@@ -342,7 +342,7 @@ export function McpSection(): ReactNode {
   const onToggle = useCallback(async (view: ServerView) => {
     try {
       await post('server/update', { ...view, enabled: !view.enabled })
-      setNotice(!view.enabled ? `已启用 ${view.serverName}` : `已停用 ${view.serverName}`)
+      setNotice(!view.enabled ? `${view.serverName} ativado` : `${view.serverName} desativado`)
     } catch {
       // post() already surfaced the error banner.
     }
@@ -353,7 +353,7 @@ export function McpSection(): ReactNode {
       await post('server/delete', { id: view.id })
       if (draft?.id === view.id) setDraft(null)
       setConfirmTarget(null)
-      setNotice(`已删除 ${view.serverName}`)
+      setNotice(`${view.serverName} excluído`)
     } catch {
       // post() already surfaced the error banner.
     }
@@ -368,25 +368,25 @@ export function McpSection(): ReactNode {
 
   return (
     <div className="dshMcp-section">
-      <p className="dshMcp-title">MCP 服务器</p>
+      <p className="dshMcp-title">Servidores MCP</p>
       <p className="dshMcp-hint">
-        把外部 MCP 服务器接入模型：每个服务器的工具会以 mcp__服务器名__工具名 的形式原生出现。
-        stdio 服务器将在本机启动对应命令进程，请确认命令来源可信。保存后立即挂载，无需重启。
-        支持粘贴标准 mcpServers JSON（Claude / Cursor / VS Code 配置同款形状）。注意：工具定义会占用每轮对话的上下文，按需启用。
+        Conecte servidores MCP externos ao modelo. As ferramentas aparecem como mcp__nome-do-servidor__nome-da-ferramenta.
+        Servidores stdio iniciam um processo local; confirme que o comando é confiável. O salvamento monta o servidor imediatamente, sem reiniciar.
+        Cole JSON no formato mcpServers, igual às configurações de Claude, Cursor e VS Code. As ferramentas ocupam contexto em cada conversa; ative apenas quando necessário.
       </p>
 
       {error !== undefined ? <div className="dshMcp-banner" role="alert">{error}</div> : null}
       {notice !== undefined ? <div className="dshMcp-noticeOk">{notice}</div> : null}
       {data !== null && !data.mountAvailable
-        ? <div className="dshMcp-warning">当前内核不支持 MCP 动态挂载：配置可以保存，但服务器不会挂载、工具不可用。</div>
+        ? <div className="dshMcp-warning">O kernel atual não suporta montagem dinâmica de MCP: a configuração pode ser salva, mas o servidor não será montado e as ferramentas ficarão indisponíveis.</div>
         : null}
 
       {draft !== null
         ? (
           <form className="dshMcp-form" onSubmit={(event) => { event.preventDefault(); void onSave() }}>
             <div className="dshMcp-formHead">
-              <p className="dshMcp-formTitle">{draft.id === null ? '添加 MCP 服务器' : `编辑 ${draft.serverName}`}</p>
-              <div className="dshMcp-viewToggle" role="tablist" aria-label="编辑视图">
+              <p className="dshMcp-formTitle">{draft.id === null ? 'Adicionar servidor MCP' : `Editar ${draft.serverName}`}</p>
+              <div className="dshMcp-viewToggle" role="tablist" aria-label="Visualização de edição">
                 <button
                   type="button"
                   role="tab"
@@ -394,7 +394,7 @@ export function McpSection(): ReactNode {
                   className={editView === 'form' ? 'dshMcp-viewBtn dshMcp-viewBtnOn' : 'dshMcp-viewBtn'}
                   disabled={busy || editView === 'form'}
                   onClick={switchToForm}
-                >表单</button>
+                >Formulário</button>
                 <button
                   type="button"
                   role="tab"
@@ -409,19 +409,19 @@ export function McpSection(): ReactNode {
             {editView === 'json'
               ? (
                 <div className="dshMcp-field">
-                  <span className="dshMcp-label">完整配置</span>
+                   <span className="dshMcp-label">Configuração completa</span>
                   <textarea
                     className="dshMcp-textarea dshMcp-jsonArea"
                     value={jsonText}
                     spellCheck={false}
                     placeholder={'{\n  "figma": {\n    "type": "stdio",\n    "command": "npx",\n    "args": ["-y", "figma-developer-mcp"]\n  }\n}'}
                     disabled={busy}
-                    aria-label="MCP 服务器 JSON 配置"
+                     aria-label="Configuração JSON do servidor MCP"
                     onChange={(event) => { setJsonText(event.target.value) }}
                   />
                   <span className="dshMcp-fieldHint">
-                    支持直接粘贴 {'{"server-name": {...}}'} 或 {'{"mcpServers": {"server-name": {...}}}'}；编辑模式只对应一个服务器，批量请用「导入 JSON」。
-                    {jsonInvalid ? '当前内容解析失败，修正后可保存或切回表单。' : ''}
+                     Cole {'{"server-name": {...}}'} ou {'{"mcpServers": {"server-name": {...}}}'}; o modo de edição corresponde a um servidor. Use "Importar JSON" para lotes.
+                     {jsonInvalid ? 'O conteúdo não pôde ser interpretado; corrija-o para salvar ou volte ao formulário.' : ''}
                   </span>
                 </div>
               )
@@ -429,20 +429,20 @@ export function McpSection(): ReactNode {
                 <>
                   <div className="dshMcp-row">
                     <div className="dshMcp-field dshMcp-fieldGrow">
-                      <span className="dshMcp-label">serverName（工具命名空间）</span>
+                       <span className="dshMcp-label">serverName (namespace das ferramentas)</span>
                       <input
                         className="dshMcp-input"
                         value={draft.serverName}
-                        placeholder="例如 github"
+                         placeholder="ex.: github"
                         disabled={busy}
                         aria-label="serverName"
                         onChange={(event) => { setDraft({ ...draft, serverName: event.target.value }) }}
                       />
-                      <span className="dshMcp-fieldHint">1–32 位字母/数字/下划线/连字符，工具名形如 mcp__服务器名__工具名</span>
+                       <span className="dshMcp-fieldHint">1 a 32 letras, números, sublinhados ou hífens; ferramentas usam mcp__nome-do-servidor__nome-da-ferramenta</span>
                     </div>
                     <div className="dshMcp-field">
-                      <span className="dshMcp-label">传输方式</span>
-                      <div className="dshMcp-radioGroup" role="radiogroup" aria-label="传输方式">
+                       <span className="dshMcp-label">Transporte</span>
+                       <div className="dshMcp-radioGroup" role="radiogroup" aria-label="Transporte">
                         <label>
                           <input
                             type="radio"
@@ -451,7 +451,7 @@ export function McpSection(): ReactNode {
                             disabled={busy}
                             onChange={() => { setDraft({ ...draft, transport: 'stdio' }) }}
                           />
-                          stdio（本机进程）
+                          stdio (processo local)
                         </label>
                         <label>
                           <input
@@ -472,46 +472,46 @@ export function McpSection(): ReactNode {
                       <>
                         <div className="dshMcp-row">
                           <div className="dshMcp-field dshMcp-fieldGrow">
-                            <span className="dshMcp-label">启动命令</span>
+                            <span className="dshMcp-label">Comando de inicialização</span>
                             <input
                               className="dshMcp-input"
                               value={draft.command}
-                              placeholder="例如 npx"
+                              placeholder="ex.: npx"
                               disabled={busy}
-                              aria-label="启动命令"
+                              aria-label="Comando de inicialização"
                               onChange={(event) => { setDraft({ ...draft, command: event.target.value }) }}
                             />
                           </div>
                           <div className="dshMcp-field">
-                            <span className="dshMcp-label">工作目录（可选）</span>
+                            <span className="dshMcp-label">Diretório de trabalho (opcional)</span>
                             <input
                               className="dshMcp-input"
                               value={draft.cwd}
                               disabled={busy}
-                              aria-label="工作目录"
+                              aria-label="Diretório de trabalho"
                               onChange={(event) => { setDraft({ ...draft, cwd: event.target.value }) }}
                             />
                           </div>
                         </div>
                         <div className="dshMcp-field">
-                          <span className="dshMcp-label">参数（每行一个）</span>
+                          <span className="dshMcp-label">Argumentos (um por linha)</span>
                           <textarea
                             className="dshMcp-textarea"
                             value={draft.argsText}
                             placeholder={'-y\n@modelcontextprotocol/server-filesystem\nD:/workspace'}
                             disabled={busy}
-                            aria-label="启动参数"
+                            aria-label="Argumentos de inicialização"
                             onChange={(event) => { setDraft({ ...draft, argsText: event.target.value }) }}
                           />
                         </div>
                         <div className="dshMcp-field">
-                          <span className="dshMcp-label">环境变量（每行 KEY=VALUE；值可写 $ENV:变量名 引用环境变量）</span>
+                          <span className="dshMcp-label">Variáveis de ambiente (KEY=VALUE por linha; use $ENV:NOME para referenciar o ambiente)</span>
                           <textarea
                             className="dshMcp-textarea"
                             value={draft.envText}
                             placeholder={'GITHUB_TOKEN=$ENV:GITHUB_TOKEN'}
                             disabled={busy}
-                            aria-label="环境变量"
+                            aria-label="Variáveis de ambiente"
                             onChange={(event) => { setDraft({ ...draft, envText: event.target.value }) }}
                           />
                         </div>
@@ -520,24 +520,24 @@ export function McpSection(): ReactNode {
                     : (
                       <>
                         <div className="dshMcp-field">
-                          <span className="dshMcp-label">服务地址</span>
+                           <span className="dshMcp-label">Endereço do serviço</span>
                           <input
                             className="dshMcp-input"
                             value={draft.url}
                             placeholder="http://127.0.0.1:3000/mcp"
                             disabled={busy}
-                            aria-label="服务地址"
+                             aria-label="Endereço do serviço"
                             onChange={(event) => { setDraft({ ...draft, url: event.target.value }) }}
                           />
                         </div>
                         <div className="dshMcp-field">
-                          <span className="dshMcp-label">请求头（每行 KEY=VALUE；值可写 $ENV:变量名 引用环境变量）</span>
+                           <span className="dshMcp-label">Cabeçalhos (KEY=VALUE por linha; use $ENV:NOME para referenciar o ambiente)</span>
                           <textarea
                             className="dshMcp-textarea"
                             value={draft.headersText}
                             placeholder={'Authorization=$ENV:MCP_TOKEN'}
                             disabled={busy}
-                            aria-label="请求头"
+                             aria-label="Cabeçalhos"
                             onChange={(event) => { setDraft({ ...draft, headersText: event.target.value }) }}
                           />
                         </div>
@@ -546,12 +546,12 @@ export function McpSection(): ReactNode {
 
                   <div className="dshMcp-row">
                     <div className="dshMcp-field">
-                      <span className="dshMcp-label">工具调用超时 ms（可选，默认 60000）</span>
+                       <span className="dshMcp-label">Tempo limite de chamada de ferramenta (ms, opcional, padrão 60000)</span>
                       <input
                         className="dshMcp-input"
                         value={draft.toolCallTimeoutMs}
                         disabled={busy}
-                        aria-label="工具调用超时"
+                         aria-label="Tempo limite da ferramenta"
                         onChange={(event) => { setDraft({ ...draft, toolCallTimeoutMs: event.target.value }) }}
                       />
                     </div>
@@ -561,28 +561,28 @@ export function McpSection(): ReactNode {
 
             <div className="dshMcp-formActions">
               <button type="submit" className="dshMcp-button dshMcp-buttonPrimary" disabled={busy}>
-                {busy ? '保存中…' : draft.id === null ? '添加并挂载' : '保存并重新挂载'}
+                {busy ? 'Salvando…' : draft.id === null ? 'Adicionar e montar' : 'Salvar e montar novamente'}
               </button>
-              <button type="button" className="dshMcp-button" disabled={busy} onClick={() => { setDraft(null); setError(undefined) }}>取消</button>
+              <button type="button" className="dshMcp-button" disabled={busy} onClick={() => { setDraft(null); setError(undefined) }}>Cancelar</button>
             </div>
           </form>
         )
         : (
           <div className="dshMcp-toolbar">
-            <span className="dshMcp-count">{data === null ? '' : `共 ${String(data.servers.length)} 个服务器`}</span>
+            <span className="dshMcp-count">{data === null ? '' : `${String(data.servers.length)} servidores`}</span>
             <div className="dshMcp-toolbarActions">
               <button
                 type="button"
                 className="dshMcp-button"
                 disabled={busy || (data !== null && !data.enabled)}
                 onClick={() => { setImportOpen(true); setImportReport(null); setError(undefined) }}
-              >导入 JSON</button>
+              >Importar JSON</button>
               <button
                 type="button"
                 className="dshMcp-button dshMcp-buttonPrimary"
                 disabled={busy || (data !== null && !data.enabled)}
                 onClick={() => { setDraft(emptyDraft()); setEditView('form'); setError(undefined) }}
-              >添加服务器</button>
+              >Adicionar servidor</button>
             </div>
           </div>
         )}
@@ -590,9 +590,9 @@ export function McpSection(): ReactNode {
       {importOpen
         ? (
           <form className="dshMcp-form" onSubmit={(event) => { event.preventDefault(); void onImport() }}>
-            <p className="dshMcp-formTitle">从 JSON 导入</p>
+            <p className="dshMcp-formTitle">Importar do JSON</p>
             <div className="dshMcp-field">
-              <span className="dshMcp-label">mcpServers 配置</span>
+              <span className="dshMcp-label">Configuração mcpServers</span>
               <textarea
                 className="dshMcp-textarea dshMcp-jsonArea"
                 value={importText}
@@ -603,18 +603,18 @@ export function McpSection(): ReactNode {
                 onChange={(event) => { setImportText(event.target.value) }}
               />
               <span className="dshMcp-fieldHint">
-                支持粘贴 {'{"server-name": {...}}'} 或带 {"mcpServers"} 包装的完整配置（Claude / Cursor / VS Code 同款形状）。逐条导入，失败的条目不影响其余。
+                Cole {'{"server-name": {...}}'} ou uma configuração completa com {"mcpServers"} (formato de Claude, Cursor e VS Code). A importação é individual; falhas não afetam os demais itens.
               </span>
             </div>
             {importReport !== null
               ? (
                 <div className="dshMcp-importReport">
                   {importReport.imported.length > 0
-                    ? <div className="dshMcp-noticeOk">已导入：{importReport.imported.join('、')}</div>
+                      ? <div className="dshMcp-noticeOk">Importados: {importReport.imported.join(', ')}</div>
                     : null}
                   {importReport.renamed.map(entry => (
                     <div key={entry.to} className="dshMcp-warning">
-                      已自动改名：{entry.from} → {entry.to}（服务器名会成为工具命名空间 mcp__名称__工具名，不能含空格等字符）
+                       Renomeado automaticamente: {entry.from} → {entry.to} (o nome vira o namespace mcp__nome__ferramenta e não pode conter espaços)
                     </div>
                   ))}
                   {importReport.failed.map(entry => (
@@ -625,21 +625,21 @@ export function McpSection(): ReactNode {
               : null}
             <div className="dshMcp-formActions">
               <button type="submit" className="dshMcp-button dshMcp-buttonPrimary" disabled={busy || importText.trim() === ''}>
-                {busy ? '导入中…' : '导入并挂载'}
+                 {busy ? 'Importando…' : 'Importar e montar'}
               </button>
-              <button type="button" className="dshMcp-button" disabled={busy} onClick={() => { setImportOpen(false); setImportReport(null) }}>关闭</button>
+              <button type="button" className="dshMcp-button" disabled={busy} onClick={() => { setImportOpen(false); setImportReport(null) }}>Fechar</button>
             </div>
           </form>
         )
         : null}
 
       {data !== null && !data.enabled
-        ? <div className="dshMcp-warning">MCP 管理已整体停用（配置文件 enabled: false）：列表只读，如需启用请编辑配置文件后重启。</div>
+        ? <div className="dshMcp-warning">O gerenciamento MCP foi desativado (enabled: false): a lista é somente leitura. Edite a configuração e reinicie para ativá-lo.</div>
         : null}
 
       <div className="dshMcp-list">
         {sortedServers.length === 0 && draft === null && !importOpen
-          ? <div className="dshMcp-empty">还没有配置 MCP 服务器。添加一个（如 filesystem、github），或直接粘贴已有的 mcpServers JSON 导入。</div>
+          ? <div className="dshMcp-empty">Nenhum servidor MCP configurado. Adicione um, como filesystem ou github, ou cole um JSON mcpServers existente.</div>
           : null}
         {sortedServers.map((view) => {
           const badge = STATUS_BADGE[view.status.state] ?? STATUS_BADGE.disabled
@@ -652,7 +652,7 @@ export function McpSection(): ReactNode {
                 <span className="dshMcp-serverName">{view.serverName}</span>
                 <span className="dshMcp-badge">{view.transport === 'stdio' ? 'stdio' : 'http'}</span>
                 <span className={badge.className}>
-                  {badge.label}{view.status.state === 'mounted' && view.status.toolCount !== undefined ? ` · ${String(view.status.toolCount)} 个工具` : ''}
+                  {badge.label}{view.status.state === 'mounted' && view.status.toolCount !== undefined ? ` · ${String(view.status.toolCount)} ferramentas` : ''}
                 </span>
               </div>
               {view.status.message !== undefined ? <div className="dshMcp-warning">{view.status.message}</div> : null}
@@ -663,25 +663,25 @@ export function McpSection(): ReactNode {
                   className="dshMcp-toggle"
                   role="switch"
                   aria-checked={view.enabled}
-                  aria-label={`启用 ${view.serverName}`}
+                  aria-label={`Ativar ${view.serverName}`}
                   disabled={busy}
                   onClick={() => { void onToggle(view) }}
                 />
-                <button type="button" className="dshMcp-button" disabled={busy} onClick={() => { openEdit(view) }}>编辑</button>
-                <button type="button" className="dshMcp-button dshMcp-buttonDanger" disabled={busy} onClick={() => { setConfirmTarget(view) }}>删除</button>
+                <button type="button" className="dshMcp-button" disabled={busy} onClick={() => { openEdit(view) }}>Editar</button>
+                <button type="button" className="dshMcp-button dshMcp-buttonDanger" disabled={busy} onClick={() => { setConfirmTarget(view) }}>Excluir</button>
               </div>
             </div>
           )
         })}
       </div>
 
-      {data !== null ? <p className="dshMcp-path" title={data.filePath}>配置文件：{data.filePath}</p> : null}
+      {data !== null ? <p className="dshMcp-path" title={data.filePath}>Arquivo de configuração: {data.filePath}</p> : null}
 
       <ConfirmDialog
         open={confirmTarget !== null}
-        title={`删除 MCP 服务器「${confirmTarget?.serverName ?? ''}」`}
-        message="该服务器注册的工具将立即从模型侧移除，配置文件中的条目一并删除。"
-        confirmLabel="删除"
+        title={`Excluir servidor MCP "${confirmTarget?.serverName ?? ''}"`}
+        message="As ferramentas registradas por este servidor serão removidas imediatamente e sua entrada será excluída do arquivo de configuração."
+        confirmLabel="Excluir"
         busy={busy}
         onConfirm={() => { if (confirmTarget !== null) void onDelete(confirmTarget) }}
         onClose={() => { setConfirmTarget(null) }}

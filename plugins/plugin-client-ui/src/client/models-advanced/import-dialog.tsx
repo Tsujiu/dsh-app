@@ -93,34 +93,34 @@ export function ModelsDevImportDialog(props: ModelsDevImportDialogProps): ReactN
         className="dshAma-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="从 models.dev 导入模型"
+         aria-label="Importar modelos do models.dev"
         onClick={(event) => { event.stopPropagation() }}
       >
         <div className="dshAma-modalHead">
-          <span className="dshAma-modalTitle">从 models.dev 导入模型</span>
-          <button type="button" className="dshAma-iconButton" aria-label="关闭" onClick={onClose}>✕</button>
+           <span className="dshAma-modalTitle">Importar modelos do models.dev</span>
+           <button type="button" className="dshAma-iconButton" aria-label="Fechar" onClick={onClose}>✕</button>
         </div>
         <div className="dshAma-modalBody">
           {failure !== undefined
             ? (
               <div className="dshAma-error">
-                <p>无法访问 models.dev（{failure}）。可能是网络或浏览器跨域限制，可关闭后手动填写字段。</p>
+                 <p>Não foi possível acessar o models.dev ({failure}). Pode ser um problema de rede ou de CORS; feche esta janela e preencha os campos manualmente.</p>
                 <button
                   type="button" className="dshAma-button"
                   onClick={() => { setProviders(undefined); setFailure(undefined) }}
-                >重试</button>
+                 >Tentar novamente</button>
               </div>
             )
             : busy || providers === undefined
-              ? <p className="dshAma-hint">正在获取 models.dev 目录…</p>
+               ? <p className="dshAma-hint">Obtendo o catálogo do models.dev…</p>
               : (
                 <>
                   <input
                     className="dshAma-input"
                     type="text"
                     value={query}
-                    placeholder="搜模型 ID / 显示名 / provider（如 V4.1、deepseek-flash、opencode）"
-                    aria-label="搜索模型或 provider"
+                     placeholder="Pesquisar ID, nome ou provider (ex.: V4.1, deepseek-flash, opencode)"
+                     aria-label="Pesquisar modelo ou provider"
                     onChange={(event) => {
                       setQuery(event.target.value)
                       setExpanded(undefined)
@@ -128,11 +128,11 @@ export function ModelsDevImportDialog(props: ModelsDevImportDialogProps): ReactN
                     }}
                   />
                   {query.trim() === ''
-                    ? <p className="dshAma-hint">可按显示名搜索（如 V4.1 Flash）。wire ID 与营销名可能不同，例如 V4.1 的 ID 是 deepseek-flash。</p>
+                     ? <p className="dshAma-hint">Pesquise também pelo nome de exibição (ex.: V4.1 Flash). O ID wire pode ser diferente do nome comercial; por exemplo, o ID de V4.1 é deepseek-flash.</p>
                     : null}
                   {modelHits.length > 0 ? (
                     <div className="dshAma-candidateBlock">
-                      <p className="dshAma-hint">模型匹配（wire ID 与显示名都搜）：</p>
+                       <p className="dshAma-hint">Modelos encontrados (ID wire e nome de exibição):</p>
                       <ul className="dshAma-candidateList">
                         {modelHits.map(hit => {
                           const key = hitKey(hit)
@@ -155,7 +155,7 @@ export function ModelsDevImportDialog(props: ModelsDevImportDialogProps): ReactN
                                   {name !== '' && name !== hit.modelId ? name + '（' + hit.modelId + '）' : hit.modelId}
                                 </span>
                                 <span className="dshAma-muted"> · {hit.providerId}</span>
-                                {existingIds.has(hit.modelId) ? <span className="dshAma-muted">（已配置）</span> : null}
+                                 {existingIds.has(hit.modelId) ? <span className="dshAma-muted"> (já configurado)</span> : null}
                               </label>
                             </li>
                           )
@@ -174,18 +174,18 @@ export function ModelsDevImportDialog(props: ModelsDevImportDialogProps): ReactN
                         <span className="dshAma-providerId">{provider.id}</span>
                         <span className="dshAma-providerMeta">
                           {provider.npm ?? provider.api ?? ''}
-                          {provider.npm === '@ai-sdk/openai-compatible' ? ' · openai-completions 参考' : ''}
+                           {provider.npm === '@ai-sdk/openai-compatible' ? ' · referência openai-completions' : ''}
                         </span>
                       </button>
                     ))}
                     {query.trim() !== '' && results.length === 0 && modelHits.length === 0
-                      ? <p className="dshAma-hint">没有匹配的 provider 或模型。</p>
+                       ? <p className="dshAma-hint">Nenhum provider ou modelo encontrado.</p>
                       : null}
                   </div>
                   {expanded === undefined ? null : (
                     <div className="dshAma-candidateBlock">
                       <p className="dshAma-hint">
-                        {expanded.provider.id} 的模型（已跳过不支持工具调用的条目；compat 预设请在各行按网关确认）：
+                         Modelos de {expanded.provider.id} (itens sem suporte a ferramentas foram ignorados; confirme as predefinições de compatibilidade por gateway):
                       </p>
                       <ul className="dshAma-candidateList">
                         {expanded.models.map(model => (
@@ -203,12 +203,12 @@ export function ModelsDevImportDialog(props: ModelsDevImportDialogProps): ReactN
                                 }}
                               />
                               <span>{model.id}</span>
-                              {existingIds.has(model.id) ? <span className="dshAma-muted">（已配置）</span> : null}
+                               {existingIds.has(model.id) ? <span className="dshAma-muted"> (já configurado)</span> : null}
                             </label>
                           </li>
                         ))}
                         {expanded.models.length === 0
-                          ? <p className="dshAma-hint">该 provider 没有可导入的模型（可能均不支持工具调用）。</p>
+                           ? <p className="dshAma-hint">Este provider não possui modelos importáveis (talvez nenhum aceite chamadas de ferramentas).</p>
                           : null}
                       </ul>
                     </div>
@@ -217,7 +217,7 @@ export function ModelsDevImportDialog(props: ModelsDevImportDialogProps): ReactN
               )}
         </div>
         <div className="dshAma-modalFoot">
-          <button type="button" className="dshAma-button" onClick={onClose}>取消</button>
+           <button type="button" className="dshAma-button" onClick={onClose}>Cancelar</button>
           <button
             type="button"
             className="dshAma-button dshAma-buttonPrimary"
@@ -232,7 +232,7 @@ export function ModelsDevImportDialog(props: ModelsDevImportDialogProps): ReactN
               }
               onClose()
             }}
-          >{`采用 ${String(adoptCount)} 个模型`}</button>
+           >{`Adicionar ${String(adoptCount)} modelos`}</button>
         </div>
       </div>
     </div>

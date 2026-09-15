@@ -1,7 +1,7 @@
 /**
  * DSH APP usage statistics — client half.
  *
- * Registers the settings-page section ("用量统计"). Third-party usage
+ * Registers the settings-page section ("Estatísticas de uso"). Third-party usage
  * plugins coexist by design (each renders its own page over its own data —
  * see the host half's header), so this half always registers. A user who
  * prefers their own plugin disables this one through the user config file
@@ -26,7 +26,7 @@ export const inject = ['slots']
 
 /** Nav identity of the usage settings page. */
 const SECTION_ID = 'dsh-app-usage'
-const SECTION_LABEL = '用量统计'
+const SECTION_LABEL = 'Estatísticas de uso'
 
 /**
  * A three-bar glyph for the settings nav (the shell maps unknown section ids
